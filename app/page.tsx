@@ -37,7 +37,7 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    const used = parseInt(localStorage.getItem(LOCAL_SCANS_KEY) || '0')
+    const used = typeof window !== "undefined" ? parseInt(localStorage.getItem(LOCAL_SCANS_KEY) || "0") : 0
     setFreeScansUsed(used)
 
     supabase.auth.getUser().then(({ data }) => {
