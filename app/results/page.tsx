@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, ExternalLink, Clock, Package, Shield, ChevronDown, ChevronUp, Database } from 'lucide-react'
 import GradeAnalysis from '../components/GradeAnalysis'
+import MarketDataComponent from '../components/MarketData'
 
 interface Tier {
   name: string
@@ -278,6 +279,14 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* Market Data — Chantier 3 */}
+        {analysis.cardName && (
+          <div style={{ marginBottom: 48 }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, letterSpacing: 3, color: '#E8E8EC', marginBottom: 24 }}>MARKET DATA</h2>
+            <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
+          </div>
+        )}
 
         {/* Grade Analysis — Chantier 2 */}
         {analysis.criteriaScores && (
