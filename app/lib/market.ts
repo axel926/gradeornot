@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getPSAPrices } from './psa-prices'
 
 const CACHE_TTL_HOURS = 6
 
@@ -23,15 +24,10 @@ export interface MarketData {
     psa9: number | null
     psa10: number | null
   }
-  volume: {
-    days7: number
-    days30: number
-  }
-  trends: {
-    days7: number | null
-    days30: number | null
-  }
+  volume: { days7: number; days30: number }
+  trends: { days7: number | null; days30: number | null }
   source: string
+  gradeSource: string
   lastUpdated: string
 }
 
@@ -59,7 +55,7 @@ function calcStats(prices: number[]) {
   return { avg, median, min: Math.round(sorted[0] * 100) / 100, max: Math.round(sorted[sorted.length - 1] * 100) / 100, count: clean.length }
 }
 
-async function fetchPokemonPrices(cardName: string, setName?: string): Promise<MarketData | null> {
+async function fetchPokemonPrices(cardName: string, setName?: string) {
   try {
     const query = setName ? `name:"${cardName}" set.name:"${setName}"` : `name:"${cardName}"`
     const res = await fetch(
@@ -73,39 +69,21 @@ async function fetchPokemonPrices(cardName: string, setName?: string): Promise<M
     const tcg = card.tcgplayer?.prices
     if (!tcg) return null
 
-    const priceTypes = Object.values(tcg) as Record<string, number>[]
     const rawPrices: number[] = []
-    priceTypes.forEach(pt => {
-      if (pt.market) rawPrices.push(pt.market)
-      else if (pt.mid) rawPrices.push(pt.mid)
+    Object.values(tcg).forEach((pt: unknown) => {
+      const p = pt as Record<string, number>
+      if (p.market) rawPrices.push(p.market)
+      else if (p.mid) rawPrices.push(p.mid)
     })
 
-    const rawStats = calcStats(rawPrices)
-
-    // Estimation des prix gradés basée sur multiplicateurs TCG connus
-    const baseRaw = rawStats.median || rawStats.avg || 0
-    const grades = {
-      psa7: baseRaw > 0 ? Math.round(baseRaw * 1.2 * 100) / 100 : null,
-      psa8: baseRaw > 0 ? Math.round(baseRaw * 1.5 * 100) / 100 : null,
-      psa9: baseRaw > 0 ? Math.round(baseRaw * 2.2 * 100) / 100 : null,
-      psa10: baseRaw > 0 ? Math.round(baseRaw * 4.5 * 100) / 100 : null,
-    }
-
-    return {
-      raw: rawStats,
-      grades,
-      volume: { days7: Math.floor(Math.random() * 20) + 5, days30: Math.floor(Math.random() * 80) + 20 },
-      trends: { days7: null, days30: null },
-      source: 'TCGPlayer',
-      lastUpdated: new Date().toISOString()
-    }
+    return { rawStats: calcStats(rawPrices), source: 'TCGPlayer' }
   } catch { return null }
 }
 
-async function fetchMagicPrices(cardName: string, setName?: string): Promise<MarketData | null> {
+async function fetchMagicPrices(cardName: string, setName?: string) {
   try {
     const query = setName ? `!"${cardName}" e:${setName}` : `!"${cardName}"`
-    const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=usd&dir=desc`)
+    const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=usd`)
     const data = await res.json()
 
     let card = data.data?.[0]
@@ -115,25 +93,12 @@ async function fetchMagicPrices(cardName: string, setName?: string): Promise<Mar
       if (card.object === 'error') return null
     }
 
-    const usd = card.prices?.usd ? parseFloat(card.prices.usd) : null
-    const usdFoil = card.prices?.usd_foil ? parseFloat(card.prices.usd_foil) : null
-    const prices = [usd, usdFoil].filter(Boolean) as number[]
-    const rawStats = calcStats(prices)
-    const baseRaw = rawStats.median || rawStats.avg || 0
+    const prices = [
+      card.prices?.usd ? parseFloat(card.prices.usd) : null,
+      card.prices?.usd_foil ? parseFloat(card.prices.usd_foil) : null,
+    ].filter(Boolean) as number[]
 
-    return {
-      raw: rawStats,
-      grades: {
-        psa7: baseRaw > 0 ? Math.round(baseRaw * 1.15 * 100) / 100 : null,
-        psa8: baseRaw > 0 ? Math.round(baseRaw * 1.4 * 100) / 100 : null,
-        psa9: baseRaw > 0 ? Math.round(baseRaw * 2.0 * 100) / 100 : null,
-        psa10: baseRaw > 0 ? Math.round(baseRaw * 4.0 * 100) / 100 : null,
-      },
-      volume: { days7: 0, days30: 0 },
-      trends: { days7: null, days30: null },
-      source: 'Scryfall',
-      lastUpdated: new Date().toISOString()
-    }
+    return { rawStats: calcStats(prices), source: 'Scryfall' }
   } catch { return null }
 }
 
@@ -158,23 +123,53 @@ export async function getMarketData(cardName: string, game: string, setName?: st
           volume: { days7: cached.volume_7d || 0, days30: cached.volume_30d || 0 },
           trends: { days7: cached.trend_7d, days30: cached.trend_30d },
           source: cached.source,
+          gradeSource: cached.grade_source || 'Estimated',
           lastUpdated: cached.last_updated
         }
       }
     }
   } catch { /* no cache */ }
 
-  // Fetch fresh data
+  // Fetch raw prices
   const gameLower = game.toLowerCase()
-  let marketData: MarketData | null = null
+  let rawResult: { rawStats: ReturnType<typeof calcStats>; source: string } | null = null
 
   if (gameLower.includes('pokemon') || gameLower.includes('pokémon')) {
-    marketData = await fetchPokemonPrices(cardName, setName)
+    rawResult = await fetchPokemonPrices(cardName, setName)
   } else if (gameLower.includes('magic')) {
-    marketData = await fetchMagicPrices(cardName, setName)
+    rawResult = await fetchMagicPrices(cardName, setName)
   }
 
-  if (!marketData) return null
+  if (!rawResult) return null
+
+  // Fetch real PSA graded prices
+  const psaPrices = await getPSAPrices(cardName, game)
+
+  // Fallback to multipliers if PSA API fails
+  const baseRaw = rawResult.rawStats.median || rawResult.rawStats.avg || 0
+  const grades = psaPrices ? {
+    psa7: psaPrices.psa7,
+    psa8: psaPrices.psa8,
+    psa9: psaPrices.psa9,
+    psa10: psaPrices.psa10,
+  } : {
+    psa7: baseRaw > 0 ? Math.round(baseRaw * 1.2 * 100) / 100 : null,
+    psa8: baseRaw > 0 ? Math.round(baseRaw * 1.5 * 100) / 100 : null,
+    psa9: baseRaw > 0 ? Math.round(baseRaw * 2.2 * 100) / 100 : null,
+    psa10: baseRaw > 0 ? Math.round(baseRaw * 4.5 * 100) / 100 : null,
+  }
+
+  const gradeSource = psaPrices ? 'PSA Price Guide' : 'Estimated (×multiplier)'
+
+  const marketData: MarketData = {
+    raw: rawResult.rawStats,
+    grades,
+    volume: { days7: 0, days30: 0 },
+    trends: { days7: null, days30: null },
+    source: rawResult.source,
+    gradeSource,
+    lastUpdated: new Date().toISOString()
+  }
 
   // Save to cache
   try {
@@ -185,11 +180,12 @@ export async function getMarketData(cardName: string, game: string, setName?: st
       set_name: setName,
       prices: marketData.raw,
       grade_prices: marketData.grades,
-      volume_7d: marketData.volume.days7,
-      volume_30d: marketData.volume.days30,
-      trend_7d: marketData.trends.days7,
-      trend_30d: marketData.trends.days30,
+      volume_7d: 0,
+      volume_30d: 0,
+      trend_7d: null,
+      trend_30d: null,
       source: marketData.source,
+      grade_source: gradeSource,
       last_updated: new Date().toISOString()
     }, { onConflict: 'card_key' })
   } catch { /* cache save failed */ }
