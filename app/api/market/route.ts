@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMarketData } from '../../lib/market'
 import { getEbaySoldListings } from '../../lib/ebay'
+import { getCardmarketData } from '../../lib/cardmarket'
 
 export async function POST(req: NextRequest) {
   try {
     const { cardName, game, setName } = await req.json()
     if (!cardName || !game) return NextResponse.json({ error: 'Missing card info' }, { status: 400 })
 
-    const [baseData, ebayData] = await Promise.all([
+    const [baseData, ebayData, cardmarketData] = await Promise.all([
       getMarketData(cardName, game, setName),
-      getEbaySoldListings(cardName, game, setName)
+      getEbaySoldListings(cardName, game, setName),
+      getCardmarketData(cardName, game),
     ])
 
     if (!baseData && !ebayData) return NextResponse.json({ data: null })
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ data })
+    return NextResponse.json({ data, cardmarket: cardmarketData })
   } catch (err) {
     console.error('Market data error:', err)
     return NextResponse.json({ error: 'Failed to fetch market data' }, { status: 500 })
