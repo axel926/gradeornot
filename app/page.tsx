@@ -23,6 +23,7 @@ interface Profile {
 }
 
 const FREE_SCANS_LIMIT = 5
+const [welcomeToast, setWelcomeToast] = useState(false)
 const LOCAL_SCANS_KEY = 'gradeornot_free_scans'
 
 export default function Home() {
