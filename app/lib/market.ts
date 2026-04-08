@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { getPSAPrices } from './psa-prices'
+import { getPriceChartingData } from './pricecharting'
 
 const CACHE_TTL_HOURS = 6
 
@@ -105,8 +106,9 @@ async function getTrends(supabase: ReturnType<typeof getSupabase>, key: string, 
 
     if (!history || history.length === 0) return { days7: null, days30: null }
 
-    const price7dAgo = (history as {raw_avg: number; recorded_at: string}[]).find(h => h.recorded_at <= day7ago)?.raw_avg || null
-    const price30dAgo = (history as {raw_avg: number; recorded_at: string}[]).find(h => h.recorded_at <= day30ago)?.raw_avg || null
+    const h = history as { raw_avg: number; recorded_at: string }[]
+    const price7dAgo = h.find(p => p.recorded_at <= day7ago)?.raw_avg || null
+    const price30dAgo = h.find(p => p.recorded_at <= day30ago)?.raw_avg || null
 
     return {
       days7: calcTrend(currentAvg, price7dAgo),
@@ -143,37 +145,50 @@ export async function getMarketData(cardName: string, game: string, setName?: st
     }
   } catch { /* no cache */ }
 
-  // Fetch raw prices
+  // Fetch raw prices + PriceCharting en parallèle
   const gameLower = game.toLowerCase()
   let rawResult: { rawStats: ReturnType<typeof calcStats>; source: string } | null = null
 
-  if (gameLower.includes('pokemon') || gameLower.includes('pokémon')) {
-    rawResult = await fetchPokemonPrices(cardName, setName)
-  } else if (gameLower.includes('magic')) {
-    rawResult = await fetchMagicPrices(cardName, setName)
+  const [pokemonResult, magicResult, priceCharting, psaPrices] = await Promise.all([
+    gameLower.includes('pokemon') || gameLower.includes('pokémon')
+      ? fetchPokemonPrices(cardName, setName) : Promise.resolve(null),
+    gameLower.includes('magic')
+      ? fetchMagicPrices(cardName, setName) : Promise.resolve(null),
+    getPriceChartingData(cardName, game),
+    getPSAPrices(cardName, game),
+  ])
+
+  rawResult = pokemonResult || magicResult
+
+  // Si PriceCharting a un prix RAW, on l'utilise comme référence supplémentaire
+  if (priceCharting?.raw && rawResult) {
+    const combined = [rawResult.rawStats.avg, priceCharting.raw].filter(Boolean) as number[]
+    rawResult.rawStats = calcStats(combined)
+  } else if (priceCharting?.raw && !rawResult) {
+    rawResult = { rawStats: calcStats([priceCharting.raw]), source: 'PriceCharting' }
   }
 
   if (!rawResult) return null
 
-  // Fetch real PSA graded prices
-  const psaPrices = await getPSAPrices(cardName, game)
   const baseRaw = rawResult.rawStats.median || rawResult.rawStats.avg || 0
 
-  const grades = psaPrices ? {
-    psa7: psaPrices.psa7,
-    psa8: psaPrices.psa8,
-    psa9: psaPrices.psa9,
-    psa10: psaPrices.psa10,
-  } : {
-    psa7: baseRaw > 0 ? Math.round(baseRaw * 1.2 * 100) / 100 : null,
-    psa8: baseRaw > 0 ? Math.round(baseRaw * 1.5 * 100) / 100 : null,
-    psa9: baseRaw > 0 ? Math.round(baseRaw * 2.2 * 100) / 100 : null,
-    psa10: baseRaw > 0 ? Math.round(baseRaw * 4.5 * 100) / 100 : null,
+  // Priorité des sources de prix gradés : PriceCharting > PSA > Estimés
+  const grades = {
+    psa7: priceCharting?.psa7 || psaPrices?.psa7 || (baseRaw > 0 ? Math.round(baseRaw * 1.2 * 100) / 100 : null),
+    psa8: priceCharting?.psa8 || psaPrices?.psa8 || (baseRaw > 0 ? Math.round(baseRaw * 1.5 * 100) / 100 : null),
+    psa9: priceCharting?.psa9 || psaPrices?.psa9 || (baseRaw > 0 ? Math.round(baseRaw * 2.2 * 100) / 100 : null),
+    psa10: priceCharting?.psa10 || psaPrices?.psa10 || (baseRaw > 0 ? Math.round(baseRaw * 4.5 * 100) / 100 : null),
   }
 
-  const gradeSource = psaPrices ? 'PSA Price Guide' : 'Estimated (×multiplier)'
+  const gradeSource = priceCharting?.psa10 ? 'PriceCharting'
+    : psaPrices?.psa10 ? 'PSA Price Guide'
+    : 'Estimated (×multiplier)'
 
-  // Calculate trends from history
+  const volume = {
+    days7: priceCharting?.volume || 0,
+    days30: priceCharting?.volume ? priceCharting.volume * 4 : 0
+  }
+
   const trends = await getTrends(supabase, key, rawResult.rawStats.avg)
 
   // Save to price history
@@ -191,12 +206,16 @@ export async function getMarketData(cardName: string, game: string, setName?: st
     })
   } catch { /* history save failed */ }
 
+  const sources = [rawResult.source]
+  if (priceCharting) sources.push('PriceCharting')
+  if (psaPrices) sources.push('PSA')
+
   const marketData: MarketData = {
     raw: rawResult.rawStats,
     grades,
-    volume: { days7: 0, days30: 0 },
+    volume,
     trends,
-    source: rawResult.source,
+    source: sources.join(' + '),
     gradeSource,
     lastUpdated: new Date().toISOString()
   }
@@ -210,8 +229,8 @@ export async function getMarketData(cardName: string, game: string, setName?: st
       set_name: setName,
       prices: marketData.raw,
       grade_prices: marketData.grades,
-      volume_7d: 0,
-      volume_30d: 0,
+      volume_7d: volume.days7,
+      volume_30d: volume.days30,
       trend_7d: trends.days7,
       trend_30d: trends.days30,
       source: marketData.source,
