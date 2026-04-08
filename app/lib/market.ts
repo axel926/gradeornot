@@ -90,7 +90,7 @@ async function fetchMagicPrices(cardName: string, setName?: string) {
   } catch { return null }
 }
 
-async function getTrends(supabase: ReturnType<typeof createClient>, key: string, currentAvg: number | null) {
+async function getTrends(supabase: ReturnType<typeof getSupabase>, key: string, currentAvg: number | null) {
   try {
     const now = new Date()
     const day7ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
