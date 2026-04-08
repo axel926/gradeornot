@@ -159,6 +159,7 @@ export default function Home() {
                   <span style={{ fontSize: 12, color: '#F5B731', fontFamily: 'var(--font-mono)' }}>{profile.scan_credits} scans left</span>
                 </div>
               )}
+              <a href="/dashboard" style={{ fontSize: 13, color: "#888", textDecoration: "none", fontFamily: "var(--font-body)" }}>Dashboard</a>
               <a href="/history" style={{ fontSize: 13, color: '#888', textDecoration: 'none', fontFamily: 'var(--font-body)' }}>History</a>
               <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#888', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                 <LogOut size={13} /> Sign out
