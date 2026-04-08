@@ -11,19 +11,8 @@ function getSupabase() {
 }
 
 export interface MarketData {
-  raw: {
-    avg: number | null
-    median: number | null
-    min: number | null
-    max: number | null
-    count: number
-  }
-  grades: {
-    psa7: number | null
-    psa8: number | null
-    psa9: number | null
-    psa10: number | null
-  }
+  raw: { avg: number | null; median: number | null; min: number | null; max: number | null; count: number }
+  grades: { psa7: number | null; psa8: number | null; psa9: number | null; psa10: number | null }
   volume: { days7: number; days30: number }
   trends: { days7: number | null; days30: number | null }
   source: string
@@ -55,6 +44,11 @@ function calcStats(prices: number[]) {
   return { avg, median, min: Math.round(sorted[0] * 100) / 100, max: Math.round(sorted[sorted.length - 1] * 100) / 100, count: clean.length }
 }
 
+function calcTrend(current: number | null, past: number | null): number | null {
+  if (!current || !past || past === 0) return null
+  return Math.round(((current - past) / past) * 100 * 10) / 10
+}
+
 async function fetchPokemonPrices(cardName: string, setName?: string) {
   try {
     const query = setName ? `name:"${cardName}" set.name:"${setName}"` : `name:"${cardName}"`
@@ -64,18 +58,15 @@ async function fetchPokemonPrices(cardName: string, setName?: string) {
     )
     const data = await res.json()
     if (!data.data || data.data.length === 0) return null
-
     const card = data.data[0]
     const tcg = card.tcgplayer?.prices
     if (!tcg) return null
-
     const rawPrices: number[] = []
     Object.values(tcg).forEach((pt: unknown) => {
       const p = pt as Record<string, number>
       if (p.market) rawPrices.push(p.market)
       else if (p.mid) rawPrices.push(p.mid)
     })
-
     return { rawStats: calcStats(rawPrices), source: 'TCGPlayer' }
   } catch { return null }
 }
@@ -85,21 +76,43 @@ async function fetchMagicPrices(cardName: string, setName?: string) {
     const query = setName ? `!"${cardName}" e:${setName}` : `!"${cardName}"`
     const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=usd`)
     const data = await res.json()
-
     let card = data.data?.[0]
     if (!card) {
       const res2 = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`)
       card = await res2.json()
       if (card.object === 'error') return null
     }
-
     const prices = [
       card.prices?.usd ? parseFloat(card.prices.usd) : null,
       card.prices?.usd_foil ? parseFloat(card.prices.usd_foil) : null,
     ].filter(Boolean) as number[]
-
     return { rawStats: calcStats(prices), source: 'Scryfall' }
   } catch { return null }
+}
+
+async function getTrends(supabase: ReturnType<typeof createClient>, key: string, currentAvg: number | null) {
+  try {
+    const now = new Date()
+    const day7ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const day30ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
+    const { data: history } = await supabase
+      .from('price_history')
+      .select('raw_avg, recorded_at')
+      .eq('card_key', key)
+      .order('recorded_at', { ascending: false })
+      .limit(60)
+
+    if (!history || history.length === 0) return { days7: null, days30: null }
+
+    const price7dAgo = history.find(h => h.recorded_at <= day7ago)?.raw_avg || null
+    const price30dAgo = history.find(h => h.recorded_at <= day30ago)?.raw_avg || null
+
+    return {
+      days7: calcTrend(currentAvg, price7dAgo),
+      days30: calcTrend(currentAvg, price30dAgo)
+    }
+  } catch { return { days7: null, days30: null } }
 }
 
 export async function getMarketData(cardName: string, game: string, setName?: string): Promise<MarketData | null> {
@@ -144,9 +157,8 @@ export async function getMarketData(cardName: string, game: string, setName?: st
 
   // Fetch real PSA graded prices
   const psaPrices = await getPSAPrices(cardName, game)
-
-  // Fallback to multipliers if PSA API fails
   const baseRaw = rawResult.rawStats.median || rawResult.rawStats.avg || 0
+
   const grades = psaPrices ? {
     psa7: psaPrices.psa7,
     psa8: psaPrices.psa8,
@@ -161,11 +173,29 @@ export async function getMarketData(cardName: string, game: string, setName?: st
 
   const gradeSource = psaPrices ? 'PSA Price Guide' : 'Estimated (×multiplier)'
 
+  // Calculate trends from history
+  const trends = await getTrends(supabase, key, rawResult.rawStats.avg)
+
+  // Save to price history
+  try {
+    await supabase.from('price_history').insert({
+      card_key: key,
+      card_name: cardName,
+      game,
+      raw_avg: rawResult.rawStats.avg,
+      raw_median: rawResult.rawStats.median,
+      psa7: grades.psa7,
+      psa8: grades.psa8,
+      psa9: grades.psa9,
+      psa10: grades.psa10,
+    })
+  } catch { /* history save failed */ }
+
   const marketData: MarketData = {
     raw: rawResult.rawStats,
     grades,
     volume: { days7: 0, days30: 0 },
-    trends: { days7: null, days30: null },
+    trends,
     source: rawResult.source,
     gradeSource,
     lastUpdated: new Date().toISOString()
@@ -182,8 +212,8 @@ export async function getMarketData(cardName: string, game: string, setName?: st
       grade_prices: marketData.grades,
       volume_7d: 0,
       volume_30d: 0,
-      trend_7d: null,
-      trend_30d: null,
+      trend_7d: trends.days7,
+      trend_30d: trends.days30,
       source: marketData.source,
       grade_source: gradeSource,
       last_updated: new Date().toISOString()
