@@ -126,7 +126,8 @@ export async function getEbaySoldListings(
 
     // Parse les ventes
     const listings: EbaySoldListing[] = items.map((item: Record<string, unknown[]>) => {
-      const price = parseFloat((item.sellingStatus?.[0] as Record<string, unknown[]>)?.currentPrice?.[0]?.['__value__'] as string || '0')
+      const sellingStatus = item.sellingStatus?.[0] as Record<string, {__value__: string}[]>
+      const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0')
       const title = item.title?.[0] as string || ''
       const soldDate = (item.listingInfo?.[0] as Record<string, unknown[]>)?.endTime?.[0] as string || ''
       const condition = (item.condition?.[0] as Record<string, unknown[]>)?.conditionDisplayName?.[0] as string || ''
