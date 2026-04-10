@@ -97,7 +97,28 @@ export async function getEbaySoldListings(
 
     const searchQuery = `${cardName} ${gameKeyword} ${setName || ''}`.trim()
 
-    // eBay Finding API - completed/sold items
+    // eBay Browse API - sold items (OAuth Application token)
+    // Get app token first
+    const tokenRes = await fetch('https://api.ebay.com/identity/v1/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${appId}:${process.env.EBAY_CERT_ID}`).toString('base64')}`
+      },
+      body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+    })
+
+    if (!tokenRes.ok) {
+      console.error('eBay token error:', await tokenRes.text())
+      return null
+    }
+
+    const tokenData = await tokenRes.json()
+    const accessToken = tokenData.access_token
+
+    if (!accessToken) return null
+
+    // Search sold items via Finding API with OAuth
     const url = new URL('https://svcs.ebay.com/services/search/FindingService/v1')
     url.searchParams.set('OPERATION-NAME', 'findCompletedItems')
     url.searchParams.set('SERVICE-VERSION', '1.0.0')
@@ -110,7 +131,7 @@ export async function getEbaySoldListings(
     url.searchParams.set('itemFilter(1).value', 'USD')
     url.searchParams.set('sortOrder', 'EndTimeSoonest')
     url.searchParams.set('paginationInput.entriesPerPage', '100')
-    url.searchParams.set('categoryId', '2536') // Trading Card Games
+    url.searchParams.set('categoryId', '2536')
 
     const res = await fetch(url.toString())
     if (!res.ok) return null
