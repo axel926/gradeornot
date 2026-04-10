@@ -7,6 +7,7 @@ import MarketDataComponent from '../components/MarketData'
 import ExportPDF from '../components/ExportPDF'
 import ROICalculator from '../components/ROICalculator'
 import DecisionEngine from '../components/DecisionEngine'
+import ScenarioSimulator from '../components/ScenarioSimulator'
 
 interface Tier {
   name: string
@@ -54,6 +55,7 @@ interface Analysis {
   decisionScore?: number
   decisionConfidence?: number
   decisionRules?: { id: string; label: string; passed: boolean; value: string; weight: number; detail: string }[]
+  gradeProbabilities?: { psa10: number; psa9: number; psa8: number; psa7: number }
 }
 
 interface ResultData {
@@ -303,6 +305,16 @@ export default function ResultsPage() {
               }}
             />
           )}
+        </Section>
+
+        <Section title="SCENARIO SIMULATION">
+          <ScenarioSimulator
+            rawValue={analysis.estimatedRawValue}
+            gradedValues={analysis.estimatedGradedValue}
+            gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 20, psa7: 50 }}
+            totalCost={analysis.estimatedRawValue + (best?.cost || 50) + (best?.shippingTotal || 40)}
+            sellingFee={13.25}
+          />
         </Section>
 
         <Section title="GRADING SERVICES">
