@@ -22,26 +22,6 @@ interface GradeAnalysisProps {
   psaPopulation?: { total: number; byGrade: Record<string, number>; source: string } | null
 }
 
-function ScoreBar({ label, score, weight }: { label: string; score: number; weight: string }) {
-  const [animated, setAnimated] = useState(false)
-  useEffect(() => { setTimeout(() => setAnimated(true), 100) }, [])
-  const color = score >= 8.5 ? '#22C55E' : score >= 7 ? '#F5B731' : '#EF4444'
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, color: '#E8E8EC', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{label}</span>
-          <span style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)' }}>{weight}</span>
-        </div>
-        <span style={{ fontSize: 16, fontFamily: 'var(--font-mono)', color, fontWeight: 700 }}>{score.toFixed(1)}</span>
-      </div>
-      <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-        <div style={{ height: '100%', borderRadius: 4, background: color, width: animated ? `${(score / 10) * 100}%` : '0%', transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-      </div>
-    </div>
-  )
-}
-
 function ProbabilityBar({ grade, probability, label, isReal }: GradeProbability & { isReal: boolean }) {
   const [animated, setAnimated] = useState(false)
   useEffect(() => { setTimeout(() => setAnimated(true), 300) }, [])
@@ -67,11 +47,6 @@ function ProbabilityBar({ grade, probability, label, isReal }: GradeProbability 
 }
 
 export default function GradeAnalysis({ criteria, psaGrade, confidence, gradeProbabilities, psaPopulation }: GradeAnalysisProps) {
-  const weightedScore =
-    criteria.centering * 0.40 +
-    criteria.surfaces * 0.30 +
-    criteria.corners * 0.20 +
-    criteria.edges * 0.10
 
   const isRealData = !!psaPopulation
 
@@ -89,19 +64,6 @@ export default function GradeAnalysis({ criteria, psaGrade, confidence, gradePro
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* Criteria scores */}
-      <div style={{ padding: '20px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 20 }}>CRITERIA SCORES — PSA WEIGHTED</div>
-        <ScoreBar label="Centering" score={criteria.centering} weight="40%" />
-        <ScoreBar label="Surfaces" score={criteria.surfaces} weight="30%" />
-        <ScoreBar label="Corners" score={criteria.corners} weight="20%" />
-        <ScoreBar label="Edges" score={criteria.edges} weight="10%" />
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-mono)' }}>WEIGHTED SCORE</span>
-          <span style={{ fontSize: 24, fontFamily: 'var(--font-mono)', color: weightedScore >= 9 ? '#22C55E' : '#F5B731', fontWeight: 700 }}>{weightedScore.toFixed(2)}</span>
-        </div>
-      </div>
 
       {/* Grade probability */}
       <div style={{ padding: '20px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.08)' }}>
