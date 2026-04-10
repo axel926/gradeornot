@@ -55,7 +55,6 @@ interface Analysis {
   decisionScore?: number
   decisionConfidence?: number
   decisionRules?: { id: string; label: string; passed: boolean; value: string; weight: number; detail: string }[]
-  gradeProbabilities?: { psa10: number; psa9: number; psa8: number; psa7: number }
 }
 
 interface ResultData {
