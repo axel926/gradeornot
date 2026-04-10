@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getCardPrice } from '../../lib/prices'
+import { getPSAPopulation, getDefaultProbabilities } from '../../lib/psa-population'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -314,7 +315,23 @@ Be conservative with grades. Be precise with card identification.`
       } catch { /* optional */ }
     }
 
-    return NextResponse.json({ analysis: enrichedAnalysis, gradingAnalysis })
+    // Fetch real PSA population probabilities
+    const psaPop = await getPSAPopulation(analysis.cardName, analysis.game)
+    const gradeProbabilities = psaPop
+      ? psaPop.probabilities
+      : getDefaultProbabilities(analysis.estimatedPSAGrade, enrichedAnalysis.gradeConfidence)
+
+    const finalAnalysis = {
+      ...enrichedAnalysis,
+      gradeProbabilities,
+      psaPopulation: psaPop ? {
+        total: psaPop.total,
+        byGrade: psaPop.byGrade,
+        source: psaPop.source
+      } : null,
+    }
+
+    return NextResponse.json({ analysis: finalAnalysis, gradingAnalysis })
 
   } catch (err: unknown) {
     console.error('Analysis error:', err)

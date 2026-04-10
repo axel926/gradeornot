@@ -59,6 +59,8 @@ interface Analysis {
   priceSource: string
   realPriceData: { low: number | null; mid: number | null; high: number | null; market: number | null } | null
   cardImage: string | null
+  gradeProbabilities?: { psa10: number; psa9: number; psa8: number; psa7: number }
+  psaPopulation?: { total: number; byGrade: Record<string, number>; source: string } | null
 }
 
 interface ResultData {
@@ -295,7 +297,13 @@ export default function ResultsPage() {
         {analysis.criteriaScores && (
           <div style={{ marginBottom: 32 }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, letterSpacing: 3, color: '#E8E8EC', marginBottom: 20 }}>VISUAL GRADE ANALYSIS</h2>
-            <GradeAnalysis criteria={analysis.criteriaScores} psaGrade={analysis.estimatedPSAGrade} confidence={analysis.gradeConfidence} />
+            <GradeAnalysis
+              criteria={analysis.criteriaScores}
+              psaGrade={analysis.estimatedPSAGrade}
+              confidence={analysis.gradeConfidence}
+              gradeProbabilities={analysis.gradeProbabilities}
+              psaPopulation={analysis.psaPopulation}
+            />
           </div>
         )}
 
