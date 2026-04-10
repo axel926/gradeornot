@@ -192,8 +192,9 @@ export default function MarketDataComponent({ cardName, game, setName }: MarketD
         </div>
       )}
 
-      {/* Volume + Liquidity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* Volume + Liquidity — hidden when no data */}
+      {(data.volume.days7 > 0 || data.volume.days30 > 0) && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div style={{ padding: '16px', borderRadius: 12, background: '#111113', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 12 }}>SALES VOLUME</div>
           <div style={{ display: 'flex', gap: 20 }}>
@@ -218,6 +219,7 @@ export default function MarketDataComponent({ cardName, game, setName }: MarketD
           </div>
         </div>
       </div>
+      )}
 
       <div style={{ fontSize: 11, color: '#444', fontFamily: 'var(--font-body)', textAlign: 'right' }}>
         Updated {new Date(data.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
