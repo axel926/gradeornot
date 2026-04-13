@@ -62,3 +62,83 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--vault-800); }
 ::-webkit-scrollbar-thumb { background: var(--vault-500); border-radius: 2px; }
+
+
+/* ═══ MOBILE PREMIUM ═══ */
+
+/* Smooth scrolling partout */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Meilleure performance animations */
+.animate-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Boutons tactiles */
+button, a {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Input mobile */
+input, textarea, select {
+  font-size: 16px !important; /* Evite le zoom iOS */
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+/* Scrollbar custom */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(245,183,49,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(245,183,49,0.4); }
+
+/* Safe area iPhone */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+/* Animations fluides */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-slide-up { animation: slide-up 0.3s ease forwards; }
+.animate-fade-in { animation: fade-in 0.2s ease forwards; }
+.animate-scale-in { animation: scale-in 0.2s ease forwards; }
+
+/* Touch feedback */
+.touch-feedback:active { opacity: 0.7; transform: scale(0.98); transition: all 0.1s ease; }
+
+/* Mobile nav safe area */
+@media (max-width: 640px) {
+  nav { padding-left: max(16px, env(safe-area-inset-left)) !important; padding-right: max(16px, env(safe-area-inset-right)) !important; }
+  .mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* Haptic-like visual feedback on tap */
+@keyframes tap-flash {
+  0% { background-color: rgba(245,183,49,0); }
+  50% { background-color: rgba(245,183,49,0.1); }
+  100% { background-color: rgba(245,183,49,0); }
+}
