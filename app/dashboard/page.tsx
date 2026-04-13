@@ -46,9 +46,53 @@ export default function DashboardPage() {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
       fetchProfile(data.user.id)
+      fetchPortfolioStats(data.user.id)
       fetchTransactions(data.user.id)
     })
   }, [router])
+
+  const [portfolioStats, setPortfolioStats] = useState<{ potential: number; cards: number; streak: number }>({ potential: 0, cards: 0, streak: 0 })
+
+  const fetchPortfolioStats = async (userId: string) => {
+    const { data: cards } = await supabase
+      .from('portfolio')
+      .select('current_value, purchase_price, grading_cost, status, created_at')
+      .eq('user_id', userId)
+      .eq('status', 'raw')
+
+    if (!cards) return
+
+    const potential = cards.reduce((a, c) => {
+      const raw = c.current_value || c.purchase_price || 0
+      const psa10 = raw * 4.5
+      const gradingCost = (c.grading_cost || 50) + 40
+      const netProfit = psa10 * 0.8725 - raw - gradingCost
+      return a + Math.max(0, netProfit)
+    }, 0)
+
+    // Streak — jours consécutifs avec scans
+    const { data: scans } = await supabase
+      .from('scans')
+      .select('created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(30)
+
+    let streak = 0
+    if (scans && scans.length > 0) {
+      const today = new Date().toDateString()
+      const scanDays = [...new Set(scans.map(s => new Date(s.created_at).toDateString()))]
+      let checkDate = new Date()
+      for (const day of scanDays) {
+        if (new Date(day).toDateString() === checkDate.toDateString()) {
+          streak++
+          checkDate.setDate(checkDate.getDate() - 1)
+        } else break
+      }
+    }
+
+    setPortfolioStats({ potential: Math.round(potential), cards: cards.length, streak })
+  }
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('scan_credits, total_scans, email').eq('id', userId).single()
@@ -105,6 +149,26 @@ export default function DashboardPage() {
           <div style={{ marginBottom: 32, padding: '16px 20px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', gap: 12 }}>
             <CheckCircle size={18} color="#22C55E" />
             <span style={{ fontSize: 14, color: '#22C55E', fontFamily: 'var(--font-body)' }}>{successMessage}</span>
+          </div>
+        )}
+
+        {/* Potentiel en attente */}
+        {portfolioStats.potential > 0 && (
+          <div style={{ marginBottom: 20, padding: '20px 24px', borderRadius: 16, background: 'linear-gradient(135deg, rgba(245,183,49,0.08), rgba(245,183,49,0.03))', border: '1px solid rgba(245,183,49,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 10, color: '#F5B731', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 6 }}>GRADING POTENTIAL IN YOUR PORTFOLIO</div>
+                <div style={{ fontSize: 28, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>+${portfolioStats.potential.toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4, fontFamily: 'var(--font-body)' }}>{portfolioStats.cards} raw card{portfolioStats.cards > 1 ? 's' : ''} waiting to be graded</div>
+              </div>
+              {portfolioStats.streak > 1 && (
+                <div style={{ textAlign: 'center', padding: '12px 16px', borderRadius: 12, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.2)' }}>
+                  <div style={{ fontSize: 24 }}>🔥</div>
+                  <div style={{ fontSize: 18, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>{portfolioStats.streak}</div>
+                  <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)' }}>DAY STREAK</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
