@@ -5,6 +5,7 @@ import { Zap, TrendingUp, Shield, ChevronRight, Camera, LogOut, User } from 'luc
 import CardScanner from './components/CardScanner'
 import CardSuggestions from './components/CardSuggestions'
 import AnalyzingLoader from './components/AnalyzingLoader'
+import LangSwitcher from './components/LangSwitcher'
 import { supabase } from './lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -224,6 +225,7 @@ export default function Home() {
             </span>
           </div>
 
+          <LangSwitcher />
           {/* Desktop nav */}
           <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {user ? (
