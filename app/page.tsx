@@ -41,6 +41,12 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Rediriger vers onboarding si première visite
+      const onboarded = localStorage.getItem('gradeornot_onboarded')
+      if (!onboarded) {
+        router.push('/onboarding')
+        return
+      }
       const used = parseInt(localStorage.getItem(LOCAL_SCANS_KEY) || '0')
       setFreeScansUsed(used)
       const params = new URLSearchParams(window.location.search)
