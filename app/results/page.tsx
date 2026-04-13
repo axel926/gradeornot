@@ -10,7 +10,6 @@ import DecisionEngine from '../components/DecisionEngine'
 import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
 import ShareCard from '../components/ShareCard'
-import ShareCard from '../components/ShareCard'
 
 interface Tier {
   name: string
