@@ -430,6 +430,31 @@ Be conservative with grades. Be precise with card identification.`
       decisionRules: decision.rules,
     }
 
+    // Mettre à jour le leaderboard
+    if (userId) {
+      try {
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_KEY!
+        )
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('username, total_scans')
+          .eq('id', userId)
+          .single()
+
+        if (profile) {
+          await supabaseAdmin.from('leaderboard').upsert({
+            user_id: userId,
+            username: profile.username || 'Anonymous',
+            total_scans: (profile.total_scans || 0) + 1,
+            best_roi: Math.max(decision.score || 0, 0),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
+        }
+      } catch { /* leaderboard update failed silently */ }
+    }
+
     return NextResponse.json({ analysis: finalWithDecision, gradingAnalysis })
 
   } catch (err: unknown) {
