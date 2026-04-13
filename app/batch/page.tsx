@@ -15,6 +15,7 @@ interface CardResult {
   roi?: number
   netProfit?: number
   error?: string
+  _fullResult?: Record<string, unknown>
 }
 
 export default function BatchPage() {
@@ -69,6 +70,7 @@ export default function BatchPage() {
         const data = await res.json()
         const analysis = data.analysis
 
+        const fullResult = { ...data, imagePreview: URL.createObjectURL(file) }
         setCards(prev => prev.map(c => c.id === card.id ? {
           ...c,
           status: 'done',
@@ -79,6 +81,7 @@ export default function BatchPage() {
           verdict: analysis.gradingRecommendation,
           roi: data.gradingAnalysis ? (Object.values(data.gradingAnalysis)[0] as {bestTier: {roi: number; profit: number}})?.bestTier?.roi : 0,
           netProfit: data.gradingAnalysis ? (Object.values(data.gradingAnalysis)[0] as {bestTier: {roi: number; profit: number}})?.bestTier?.profit : 0,
+          _fullResult: fullResult,
         } : c))
       } catch {
         setCards(prev => prev.map(c => c.id === card.id ? { ...c, status: 'error', error: 'Analysis failed' } : c))
