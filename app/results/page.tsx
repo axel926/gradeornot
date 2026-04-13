@@ -9,6 +9,8 @@ import ROICalculator from '../components/ROICalculator'
 import DecisionEngine from '../components/DecisionEngine'
 import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
+import ShareCard from '../components/ShareCard'
+import ShareCard from '../components/ShareCard'
 
 interface Tier {
   name: string
@@ -370,6 +372,24 @@ export default function ResultsPage() {
         {/* Footer */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 24 }}>
           <ExportPDF analysis={analysis} gradingAnalysis={gradingAnalysis} imagePreview={imagePreview} />
+          <ShareCard
+            cardName={analysis.cardName}
+            game={analysis.game}
+            verdict={analysis.gradingRecommendation}
+            roi={quickROI}
+            netProfit={quickProfit}
+            psaGrade={analysis.estimatedPSAGrade}
+            rawValue={analysis.estimatedRawValue}
+          />
+          <ShareCard
+            cardName={analysis.cardName}
+            game={analysis.game}
+            verdict={analysis.gradingRecommendation}
+            roi={quickROI}
+            netProfit={quickProfit}
+            psaGrade={analysis.estimatedPSAGrade}
+            rawValue={analysis.estimatedRawValue}
+          />
           <button onClick={() => { sessionStorage.clear(); router.push('/') }} style={{
             padding: '11px 24px', borderRadius: 10, background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)', color: '#666', fontSize: 13,
