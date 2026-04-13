@@ -2,12 +2,12 @@
 import { useEffect, useState } from 'react'
 
 const STEPS = [
-  { id: 1, label: 'Scanning card visual', sub: 'Detecting borders, surfaces, corners & edges...', duration: 2000 },
-  { id: 2, label: 'Identifying card', sub: 'Matching against TCG database — name, set, version...', duration: 2500 },
-  { id: 3, label: 'Grading analysis', sub: 'Applying PSA/BGS criteria — centering, surfaces, corners, edges...', duration: 3000 },
-  { id: 4, label: 'Fetching market prices', sub: 'Pulling live data from TCGPlayer, Scryfall, PriceCharting...', duration: 2000 },
-  { id: 5, label: 'Calculating ROI', sub: 'Computing grading costs, shipping, platform fees & net profit...', duration: 1500 },
-  { id: 6, label: 'Generating report', sub: 'Compiling your full investment analysis...', duration: 1000 },
+  { id: 1, label: 'Scanning card visual', sub: 'Detecting borders, surfaces, corners & edges...', duration: 1500 },
+  { id: 2, label: 'Identifying card', sub: 'Matching against TCG database — name, set, version...', duration: 2000 },
+  { id: 3, label: 'Grading analysis', sub: 'Applying PSA/BGS criteria — centering, surfaces, corners, edges...', duration: 2500 },
+  { id: 4, label: 'Fetching market prices', sub: 'Pulling live data from TCGPlayer, Scryfall, PriceCharting...', duration: 1500 },
+  { id: 5, label: 'Calculating ROI', sub: 'Computing grading costs, shipping, platform fees & net profit...', duration: 1000 },
+  { id: 6, label: 'Generating report', sub: 'Compiling your full investment analysis...', duration: 500 },
 ]
 
 export default function AnalyzingLoader() {
