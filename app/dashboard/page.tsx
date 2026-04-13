@@ -1,7 +1,6 @@
 'use client'
-import { useEffect } from 'react'
-import { subscribeToNotifications } from '../lib/notifications'
 import { useEffect, useState } from 'react'
+import { subscribeToNotifications } from '../lib/notifications'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { Zap, ArrowLeft, CreditCard, TrendingUp, Clock, CheckCircle } from 'lucide-react'
