@@ -170,56 +170,6 @@ function AddCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: P
             {saving ? 'Adding...' : 'Add to portfolio'}
           </button>
         </div>
-        {/* Batch Strategy */}
-        {cards.length > 0 && (
-          <div style={{ marginTop: 32 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>BATCH STRATEGY</div>
-            <BatchStrategy
-              cards={cards
-                .filter(c => c.status === 'raw')
-                .map(c => ({
-                  id: c.id,
-                  cardName: c.card_name,
-                  game: c.game || 'Pokemon',
-                  rawValue: c.current_value || c.purchase_price || 0,
-                  estimatedGrade: c.psa_grade || 8,
-                  gradedValues: {
-                    PSA10: (c.current_value || c.purchase_price || 0) * 4.5,
-                    PSA9: (c.current_value || c.purchase_price || 0) * 2.2,
-                    PSA8: (c.current_value || c.purchase_price || 0) * 1.5,
-                  },
-                  gradeProbabilities: { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
-                } as CardForBatch))
-              }
-            />
-          </div>
-        )}
-        {/* Batch Strategy */}
-        {cards.length > 0 && (
-          <div style={{ marginTop: 32 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>BATCH STRATEGY</div>
-            <BatchStrategy
-              cards={cards
-                .filter(c => c.status === 'raw')
-                .map(c => ({
-                  id: c.id,
-                  cardName: c.card_name,
-                  game: c.game || 'Pokemon',
-                  rawValue: c.current_value || c.purchase_price || 0,
-                  estimatedGrade: c.psa_grade || 8,
-                  gradedValues: {
-                    PSA10: (c.current_value || c.purchase_price || 0) * 4.5,
-                    PSA9: (c.current_value || c.purchase_price || 0) * 2.2,
-                    PSA8: (c.current_value || c.purchase_price || 0) * 1.5,
-                  },
-                  gradeProbabilities: { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
-                }))}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  )
 }
 
 function CardRow({ card, onDelete, onStatusChange }: {
@@ -432,45 +382,19 @@ export default function PortfolioPage() {
           <div style={{ marginTop: 32 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>BATCH STRATEGY</div>
             <BatchStrategy
-              cards={cards
-                .filter(c => c.status === 'raw')
-                .map(c => ({
-                  id: c.id,
-                  cardName: c.card_name,
-                  game: c.game || 'Pokemon',
-                  rawValue: c.current_value || c.purchase_price || 0,
-                  estimatedGrade: c.psa_grade || 8,
-                  gradedValues: {
-                    PSA10: (c.current_value || c.purchase_price || 0) * 4.5,
-                    PSA9: (c.current_value || c.purchase_price || 0) * 2.2,
-                    PSA8: (c.current_value || c.purchase_price || 0) * 1.5,
-                  },
-                  gradeProbabilities: { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
-                } as CardForBatch))
-              }
-            />
-          </div>
-        )}
-        {/* Batch Strategy */}
-        {cards.length > 0 && (
-          <div style={{ marginTop: 32 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>BATCH STRATEGY</div>
-            <BatchStrategy
-              cards={cards
-                .filter(c => c.status === 'raw')
-                .map(c => ({
-                  id: c.id,
-                  cardName: c.card_name,
-                  game: c.game || 'Pokemon',
-                  rawValue: c.current_value || c.purchase_price || 0,
-                  estimatedGrade: c.psa_grade || 8,
-                  gradedValues: {
-                    PSA10: (c.current_value || c.purchase_price || 0) * 4.5,
-                    PSA9: (c.current_value || c.purchase_price || 0) * 2.2,
-                    PSA8: (c.current_value || c.purchase_price || 0) * 1.5,
-                  },
-                  gradeProbabilities: { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
-                }))}
+              cards={cards.filter(c => c.status === 'raw').map(c => ({
+                id: c.id,
+                cardName: c.card_name,
+                game: c.game || 'Pokemon',
+                rawValue: c.current_value || c.purchase_price || 0,
+                estimatedGrade: c.psa_grade || 8,
+                gradedValues: {
+                  PSA10: (c.current_value || c.purchase_price || 0) * 4.5,
+                  PSA9: (c.current_value || c.purchase_price || 0) * 2.2,
+                  PSA8: (c.current_value || c.purchase_price || 0) * 1.5,
+                },
+                gradeProbabilities: { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
+              }))}
             />
           </div>
         )}
