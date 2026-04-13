@@ -209,17 +209,20 @@ export default function ResultsPage() {
 
         {/* ═══ HERO VERDICT ═══ */}
         <div style={{
-          padding: '28px 24px', borderRadius: 20, marginBottom: 16,
+          padding: '32px 28px', borderRadius: 20, marginBottom: 16,
           background: v.bg, border: `2px solid ${v.border}`,
-          display: 'flex', alignItems: 'center', gap: 20
+          position: 'relative', overflow: 'hidden'
         }}>
-          <div style={{ width: 64, height: 64, borderRadius: 16, background: `rgba(${v.color === '#22C55E' ? '34,197,94' : v.color === '#EF4444' ? '239,68,68' : '245,183,49'},0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <VIcon size={28} color={v.color} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 2, marginBottom: 4 }}>VERDICT</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 6vw, 48px)', color: v.color, letterSpacing: 4, lineHeight: 1, marginBottom: 6 }}>{v.label}</div>
-            <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.5, fontFamily: 'var(--font-body)' }}>{analysis.recommendationReason}</p>
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: `radial-gradient(circle, ${v.bg}, transparent)`, pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ width: 72, height: 72, borderRadius: 18, background: `rgba(${v.color === '#22C55E' ? '34,197,94' : v.color === '#EF4444' ? '239,68,68' : '245,183,49'},0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `1px solid ${v.border}` }}>
+              <VIcon size={32} color={v.color} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 3, marginBottom: 6 }}>VERDICT</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(36px, 7vw, 56px)', color: v.color, letterSpacing: 4, lineHeight: 1, marginBottom: 8 }}>{v.label}</div>
+              <p style={{ fontSize: 13, color: '#999', margin: 0, lineHeight: 1.6, fontFamily: 'var(--font-body)', maxWidth: 480 }}>{analysis.recommendationReason}</p>
+            </div>
           </div>
         </div>
 
@@ -238,13 +241,17 @@ export default function ResultsPage() {
         {/* ═══ 3 KPIs CLÉS ═══ */}
         <div className="kpi-grid" style={{ marginBottom: 16 }}>
           {[
-            { label: 'NET PROFIT', value: `${quickProfit >= 0 ? '+' : ''}$${quickProfit}`, sub: 'after all costs', color: quickProfit >= 0 ? '#22C55E' : '#EF4444', big: true },
-            { label: 'ROI', value: `${quickROI >= 0 ? '+' : ''}${quickROI}%`, sub: 'return on investment', color: quickROI >= 0 ? '#F5B731' : '#EF4444', big: true },
-            { label: 'BREAK-EVEN', value: `$${breakEven}`, sub: 'min. sale price', color: '#888', big: false },
+            { label: 'NET PROFIT', value: `${quickProfit >= 0 ? '+' : ''}$${quickProfit}`, sub: 'after all costs', color: quickProfit >= 0 ? '#22C55E' : '#EF4444' },
+            { label: 'ROI', value: `${quickROI >= 0 ? '+' : ''}${quickROI}%`, sub: 'return on investment', color: quickROI >= 0 ? '#F5B731' : '#EF4444' },
+            { label: 'BREAK-EVEN', value: `$${breakEven}`, sub: 'min. sale price', color: '#888' },
           ].map((k, i) => (
-            <div key={i} style={{ padding: '16px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.07)', textAlign: 'center' }}>
-              <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 8 }}>{k.label}</div>
-              <div style={{ fontSize: k.big ? 28 : 22, fontFamily: 'var(--font-mono)', color: k.color, fontWeight: 700, marginBottom: 4 }}>{k.value}</div>
+            <div key={i} style={{
+              padding: '20px 16px', borderRadius: 14, background: '#111113',
+              border: `1px solid ${i === 0 ? (quickProfit >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)') : 'rgba(255,255,255,0.07)'}`,
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 10 }}>{k.label}</div>
+              <div style={{ fontSize: 30, fontFamily: 'var(--font-mono)', color: k.color, fontWeight: 700, marginBottom: 6, lineHeight: 1 }}>{k.value}</div>
               <div style={{ fontSize: 10, color: '#444', fontFamily: 'var(--font-body)' }}>{k.sub}</div>
             </div>
           ))}
