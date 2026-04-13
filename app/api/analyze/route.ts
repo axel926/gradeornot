@@ -433,7 +433,8 @@ Be conservative with grades. Be precise with card identification.`
     // Mettre à jour le leaderboard
     if (userId) {
       try {
-        const supabaseAdmin = createClient(
+        const { createClient: createClientAdmin } = await import('@supabase/supabase-js')
+        const supabaseAdmin = createClientAdmin(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_KEY!
         )
