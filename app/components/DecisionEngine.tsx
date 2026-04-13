@@ -36,7 +36,7 @@ export default function DecisionEngine({ rules, verdict }: DecisionEngineProps) 
               }
               <span style={{ fontSize: 13, color: '#E8E8EC', fontFamily: 'var(--font-body)', fontWeight: 500, flex: 1 }}>{rule.label}</span>
               <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: rule.passed ? '#22C55E' : '#EF4444', fontWeight: 700 }}>{rule.value}</span>
-              <span style={{ fontSize: 10, color: '#444', fontFamily: 'var(--font-mono)', padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)' }}>{rule.weight}pts</span>
+
             </div>
             <p style={{ fontSize: 11, color: '#666', margin: 0, paddingLeft: 25, lineHeight: 1.4, fontFamily: 'var(--font-body)' }}>
               {rule.detail}
