@@ -170,6 +170,9 @@ function AddCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: P
             {saving ? 'Adding...' : 'Add to portfolio'}
           </button>
         </div>
+      </div>
+    </div>
+  )
 }
 
 function CardRow({ card, onDelete, onStatusChange }: {
