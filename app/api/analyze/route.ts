@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getCardPrice } from '../../lib/prices'
 import { getPSAPopulation, getDefaultProbabilities } from '../../lib/psa-population'
 import { runDecisionEngine } from '../../lib/decision-engine'
+import { validateCardIdentification } from '../../lib/card-database'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -355,6 +356,35 @@ Be conservative with grades. Be precise with card identification.`
       } catch { /* optional */ }
     }
 
+    // Validation de l'identification par la base de données
+    const validation = await validateCardIdentification(
+      analysis.game,
+      analysis.cardName,
+      analysis.setNumber,
+      analysis.setName,
+      analysis.year
+    )
+
+    const cardValidation = {
+      validated: validation.validated,
+      needsConfirmation: validation.needsConfirmation,
+      bestMatch: validation.bestMatch ? {
+        name: validation.bestMatch.card.name,
+        setName: validation.bestMatch.card.setName,
+        number: validation.bestMatch.card.number,
+        year: validation.bestMatch.card.year,
+        imageUrl: validation.bestMatch.card.imageUrl,
+        confidence: validation.bestMatch.confidence,
+      } : null,
+      alternativeMatches: validation.matches.slice(1, 3).map(m => ({
+        name: m.card.name,
+        setName: m.card.setName,
+        number: m.card.number,
+        year: m.card.year,
+        confidence: m.confidence,
+      }))
+    }
+
     // Fetch real PSA population probabilities
     const psaPop = await getPSAPopulation(analysis.cardName, analysis.game)
     const gradeProbabilities = psaPop
@@ -392,6 +422,7 @@ Be conservative with grades. Be precise with card identification.`
 
     const finalWithDecision = {
       ...finalAnalysis,
+      cardValidation,
       gradingRecommendation: decision.verdict,
       recommendationReason: decision.summary,
       decisionScore: decision.score,

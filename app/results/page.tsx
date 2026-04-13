@@ -55,6 +55,12 @@ interface Analysis {
   decisionScore?: number
   decisionConfidence?: number
   decisionRules?: { id: string; label: string; passed: boolean; value: string; weight: number; detail: string }[]
+  cardValidation?: {
+    validated: boolean
+    needsConfirmation: boolean
+    bestMatch: { name: string; setName: string; number: string; year: string; imageUrl: string | null; confidence: number } | null
+    alternativeMatches: { name: string; setName: string; number: string; year: string; confidence: number }[]
+  }
 }
 
 interface ResultData {
@@ -179,6 +185,16 @@ export default function ResultsPage() {
         </button>
         <div style={{ height: 14, width: 1, background: 'rgba(255,255,255,0.1)' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555', letterSpacing: 1 }}>ANALYSIS REPORT</span>
+        {analysis.cardValidation?.validated && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+            <span style={{ fontSize: 9, color: '#22C55E', fontFamily: 'var(--font-mono)' }}>✓ VERIFIED</span>
+          </div>
+        )}
+        {analysis.cardValidation?.needsConfirmation && !analysis.cardValidation?.validated && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(245,183,49,0.08)', border: '1px solid rgba(245,183,49,0.2)' }}>
+            <span style={{ fontSize: 9, color: '#F5B731', fontFamily: 'var(--font-mono)' }}>⚠ UNVERIFIED</span>
+          </div>
+        )}
         {analysis.realPriceFound && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
             <Database size={9} color="#22C55E" />
