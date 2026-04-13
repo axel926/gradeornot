@@ -77,8 +77,8 @@ export default function BatchPage() {
           psaGrade: analysis.estimatedPSAGrade,
           rawValue: analysis.estimatedRawValue,
           verdict: analysis.gradingRecommendation,
-          roi: data.gradingAnalysis ? Object.values(data.gradingAnalysis)[0]?.bestTier?.roi : 0,
-          netProfit: data.gradingAnalysis ? Object.values(data.gradingAnalysis)[0]?.bestTier?.profit : 0,
+          roi: data.gradingAnalysis ? (Object.values(data.gradingAnalysis)[0] as {bestTier: {roi: number; profit: number}})?.bestTier?.roi : 0,
+          netProfit: data.gradingAnalysis ? (Object.values(data.gradingAnalysis)[0] as {bestTier: {roi: number; profit: number}})?.bestTier?.profit : 0,
         } : c))
       } catch {
         setCards(prev => prev.map(c => c.id === card.id ? { ...c, status: 'error', error: 'Analysis failed' } : c))
