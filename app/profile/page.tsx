@@ -1,4 +1,5 @@
 'use client'
+import GamificationProfile from '../components/GamificationProfile'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
@@ -308,6 +309,20 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Gamification */}
+        <div style={{ marginTop: 32 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>PROGRESS</div>
+          <GamificationProfile stats={{
+            totalScans: profile?.total_scans || 0,
+            totalROI: 0,
+            avgROI: 0,
+            psA10Predictions: 0,
+            correctGradePredictions: 0,
+            portfolioCards: 0,
+            streak: 0,
+            totalProfit: 0,
+          }} />
+        </div>
       </div>
     </div>
   )
