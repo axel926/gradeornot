@@ -114,10 +114,9 @@ export async function detectOpportunities(): Promise<Opportunity[]> {
   )
 
   // Filtrer les null et trier par ROI décroissant
-  return results
-    .filter(r => r !== null) as Opportunity[]
+  return (results.filter(r => r !== null) as Opportunity[])
     .sort((a, b) => b.estimatedROI - a.estimatedROI)
-    .slice(0, 5) // Top 5 opportunités
+    .slice(0, 5)
 }
 
 // Sauvegarde les opportunités dans Supabase
