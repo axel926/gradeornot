@@ -87,11 +87,12 @@ export default function LeaderboardPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {entries.map((entry, i) => (
-              <div key={entry.id} style={{
+              <div key={entry.id} onClick={() => router.push(`/profile/${encodeURIComponent(entry.username)}`)} style={{
                 padding: '16px 20px', borderRadius: 14,
                 background: i < 3 ? 'rgba(245,183,49,0.04)' : '#111113',
                 border: `1px solid ${i < 3 ? 'rgba(245,183,49,0.15)' : 'rgba(255,255,255,0.06)'}`,
-                display: 'flex', alignItems: 'center', gap: 16
+                display: 'flex', alignItems: 'center', gap: 16,
+                cursor: 'pointer'
               }}>
                 <div style={{ fontSize: i < 3 ? 24 : 16, fontFamily: 'var(--font-mono)', color: '#555', minWidth: 36, textAlign: 'center' }}>
                   {getMedal(i)}
