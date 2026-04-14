@@ -1,4 +1,5 @@
 'use client'
+import MarketIndex from '../components/MarketIndex'
 import { useEffect, useState } from 'react'
 import { subscribeToNotifications } from '../lib/notifications'
 import { useRouter } from 'next/navigation'
@@ -152,6 +153,11 @@ export default function DashboardPage() {
             <span style={{ fontSize: 14, color: '#22C55E', fontFamily: 'var(--font-body)' }}>{successMessage}</span>
           </div>
         )}
+
+        {/* Market Index */}
+        <div style={{ marginBottom: 20 }}>
+          <MarketIndex />
+        </div>
 
         {/* Potentiel en attente */}
         {portfolioStats.potential > 0 && (
