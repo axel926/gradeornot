@@ -6,6 +6,7 @@ import CardScanner from './components/CardScanner'
 import CardSuggestions from './components/CardSuggestions'
 import AnalyzingLoader from './components/AnalyzingLoader'
 import LangSwitcher from './components/LangSwitcher'
+import MarketIndex from './components/MarketIndex'
 import { supabase } from './lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -334,6 +335,11 @@ export default function Home() {
             )}
           </div>
         )}
+
+        {/* Market Index — visible sans login */}
+        <div style={{ marginTop: 32 }}>
+          <MarketIndex />
+        </div>
 
         {/* Feature pills */}
         <div className="feature-pills" style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', paddingTop: 40, marginTop: 40, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
