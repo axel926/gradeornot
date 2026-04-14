@@ -11,6 +11,7 @@ import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
 import InvestmentScoreComponent from '../components/InvestmentScore'
 import { getTimingRecommendation } from '../lib/timing-engine'
+import OvervalueAlert from '../components/OvervalueAlert'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -392,6 +393,17 @@ export default function ResultsPage() {
             </div>
           )}
         </Section>
+
+        {/* Overvalue Alert */}
+        {analysis.estimatedRawValue > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <OvervalueAlert
+              cardName={analysis.cardName}
+              game={analysis.game}
+              currentPrice={analysis.estimatedRawValue}
+            />
+          </div>
+        )}
 
         <Section title="MARKET DATA">
           <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
