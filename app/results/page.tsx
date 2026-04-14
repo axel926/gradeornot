@@ -9,6 +9,7 @@ import ROICalculator from '../components/ROICalculator'
 import DecisionEngine from '../components/DecisionEngine'
 import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
+import InvestmentScoreComponent from '../components/InvestmentScore'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -237,6 +238,17 @@ export default function ResultsPage() {
             </Section>
           </div>
         )}
+
+        {/* ═══ INVESTMENT SCORE ═══ */}
+        <div style={{ marginBottom: 16 }}>
+          <InvestmentScoreComponent
+            roi={quickROI}
+            netProfit={quickProfit}
+            psaGrade={analysis.estimatedPSAGrade}
+            rawValue={analysis.estimatedRawValue}
+            gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 }}
+          />
+        </div>
 
         {/* ═══ 3 KPIs CLÉS ═══ */}
         <div className="kpi-grid" style={{ marginBottom: 16 }}>
