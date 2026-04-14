@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Package, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import GradeFeedback from '../components/GradeFeedback'
 import BatchStrategy from '../components/BatchStrategy'
+import PSAExport from '../components/PSAExport'
 import type { CardForBatch } from '../lib/batch-strategy'
 import type { User } from '@supabase/supabase-js'
 
@@ -382,6 +383,14 @@ export default function PortfolioPage() {
             <CardRow key={card.id} card={card} onDelete={handleDelete} onStatusChange={handleStatusChange} />
           ))
         )}
+        {/* PSA Export */}
+        {cards.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 3, color: '#E8E8EC', marginBottom: 16 }}>PSA SUBMISSION</div>
+            <PSAExport cards={cards} />
+          </div>
+        )}
+
         {/* Batch Strategy */}
         {cards.length > 0 && (
           <div style={{ marginTop: 32 }}>
