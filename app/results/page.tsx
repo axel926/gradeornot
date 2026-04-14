@@ -10,6 +10,7 @@ import DecisionEngine from '../components/DecisionEngine'
 import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
 import InvestmentScoreComponent from '../components/InvestmentScore'
+import { getTimingRecommendation } from '../lib/timing-engine'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -165,6 +166,14 @@ export default function ResultsPage() {
   const bestService = Object.values(gradingAnalysis)[0]
   const best = bestService?.bestTier
   const quickROI = best ? best.roi : 0
+  const timing = getTimingRecommendation({
+    trend7d: null,
+    trend30d: null,
+    roi: quickROI,
+    psaGrade: analysis.estimatedPSAGrade,
+    rawValue: analysis.estimatedRawValue,
+    volume7d: 0,
+  })
   const quickProfit = best ? best.profit : 0
   const breakEven = best ? Math.round((best.cost + best.shippingTotal + analysis.estimatedRawValue) / (1 - 0.1325)) : 0
 
@@ -172,7 +181,7 @@ export default function ResultsPage() {
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
       <style>{`
         .res-grid { display: grid; grid-template-columns: 180px 1fr; gap: 20px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .svc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
         @media (max-width: 640px) {
           .res-grid { grid-template-columns: 1fr !important; }
@@ -256,6 +265,7 @@ export default function ResultsPage() {
             { label: 'NET PROFIT', value: `${quickProfit >= 0 ? '+' : ''}$${quickProfit}`, sub: 'after all costs', color: quickProfit >= 0 ? '#22C55E' : '#EF4444' },
             { label: 'ROI', value: `${quickROI >= 0 ? '+' : ''}${quickROI}%`, sub: 'return on investment', color: quickROI >= 0 ? '#F5B731' : '#EF4444' },
             { label: 'BREAK-EVEN', value: `$${breakEven}`, sub: 'min. sale price', color: '#888' },
+            { label: 'TIMING', value: timing.label, sub: timing.urgency + ' urgency', color: timing.color },
           ].map((k, i) => (
             <div key={i} style={{
               padding: '20px 16px', borderRadius: 14, background: '#111113',
