@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { Zap, ArrowLeft, TrendingUp, TrendingDown, Package, Clock, CheckCircle, DollarSign } from 'lucide-react'
 import MarketIndex from '../components/MarketIndex'
+import Opportunities from '../components/Opportunities'
 import { subscribeToNotifications } from '../lib/notifications'
 import type { User } from '@supabase/supabase-js'
 
@@ -244,6 +245,12 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Opportunities */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 3, color: '#E8E8EC', marginBottom: 12 }}>🔥 TOP OPPORTUNITIES</div>
+          <Opportunities />
         </div>
 
         {/* Quick actions */}
