@@ -1,88 +1,101 @@
 'use client'
-import MarketIndex from '../components/MarketIndex'
 import { useEffect, useState } from 'react'
-import { subscribeToNotifications } from '../lib/notifications'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
-import { Zap, ArrowLeft, CreditCard, TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { Zap, ArrowLeft, TrendingUp, TrendingDown, Package, Clock, CheckCircle, DollarSign } from 'lucide-react'
+import MarketIndex from '../components/MarketIndex'
+import { subscribeToNotifications } from '../lib/notifications'
 import type { User } from '@supabase/supabase-js'
 
 interface Profile {
   scan_credits: number
   total_scans: number
+  username: string
   email: string
 }
 
-interface Transaction {
-  id: string
-  created_at: string
-  credits_added: number
-  amount: number
-  pack: string
+interface PortfolioStats {
+  totalInvested: number
+  currentValue: number
+  realizedPnL: number
+  unrealizedPnL: number
+  totalPnL: number
+  roiPercent: number
+  cardsByStatus: { raw: number; sent: number; graded: number; sold: number }
+  potential: number
+  streak: number
 }
 
-const PACKS = [
-  { id: 'starter', name: 'STARTER', credits: 10, price: 4.99, perScan: 0.50, color: '#888', popular: false },
-  { id: 'pro', name: 'PRO', credits: 25, price: 9.99, perScan: 0.40, color: '#F5B731', popular: true },
-  { id: 'vault', name: 'VAULT', credits: 60, price: 19.99, perScan: 0.33, color: '#22C55E', popular: false },
+const CREDIT_PACKS = [
+  { name: 'STARTER', price: '€4.99', credits: 10, priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER, tag: null },
+  { name: 'PRO', price: '€9.99', credits: 25, priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO, tag: 'POPULAR' },
+  { name: 'VAULT', price: '€19.99', credits: 60, priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_VAULT, tag: 'BEST VALUE' },
 ]
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [stats, setStats] = useState<PortfolioStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [purchasing, setPurchasing] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('success') === 'true') {
-      const credits = params.get('credits')
-      setSuccessMessage(`${credits} scan credits added to your account!`)
-      window.history.replaceState({}, '', '/dashboard')
-    }
+    setTimeout(() => subscribeToNotifications(), 3000)
+  }, [])
 
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
       fetchProfile(data.user.id)
       fetchPortfolioStats(data.user.id)
-      fetchTransactions(data.user.id)
     })
   }, [router])
 
-  const [portfolioStats, setPortfolioStats] = useState<{ potential: number; cards: number; streak: number }>({ potential: 0, cards: 0, streak: 0 })
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from('profiles')
+      .select('scan_credits, total_scans, username, email')
+      .eq('id', userId).single()
+    if (data) setProfile(data)
+    setLoading(false)
+  }
 
   const fetchPortfolioStats = async (userId: string) => {
-    const { data: cards } = await supabase
-      .from('portfolio')
-      .select('current_value, purchase_price, grading_cost, status, created_at')
-      .eq('user_id', userId)
-      .eq('status', 'raw')
+    const { data: cards } = await supabase.from('portfolio')
+      .select('*').eq('user_id', userId)
 
     if (!cards) return
 
-    const potential = cards.reduce((a, c) => {
+    // Calculs P&L
+    const invested = cards.reduce((a, c) => a + ((c.purchase_price || 0) * c.quantity) + (c.grading_cost || 0), 0)
+    const currentValue = cards.filter(c => c.status !== 'sold').reduce((a, c) => a + ((c.current_value || c.purchase_price || 0) * c.quantity), 0)
+    const realizedPnL = cards.filter(c => c.status === 'sold').reduce((a, c) => a + (((c.sold_price || 0) - (c.purchase_price || 0)) * c.quantity - (c.grading_cost || 0)), 0)
+    const unrealizedPnL = currentValue - cards.filter(c => c.status !== 'sold').reduce((a, c) => a + ((c.purchase_price || 0) * c.quantity) + (c.grading_cost || 0), 0)
+    const totalPnL = realizedPnL + unrealizedPnL
+    const roiPercent = invested > 0 ? Math.round((totalPnL / invested) * 100 * 10) / 10 : 0
+
+    // Status breakdown
+    const cardsByStatus = {
+      raw: cards.filter(c => c.status === 'raw').length,
+      sent: cards.filter(c => c.status === 'sent').length,
+      graded: cards.filter(c => c.status === 'graded').length,
+      sold: cards.filter(c => c.status === 'sold').length,
+    }
+
+    // Potentiel grading
+    const potential = cards.filter(c => c.status === 'raw').reduce((a, c) => {
       const raw = c.current_value || c.purchase_price || 0
-      const psa10 = raw * 4.5
-      const gradingCost = (c.grading_cost || 50) + 40
-      const netProfit = psa10 * 0.8725 - raw - gradingCost
-      return a + Math.max(0, netProfit)
+      const profit = raw * 4.5 * 0.8725 - raw - 90
+      return a + Math.max(0, profit)
     }, 0)
 
-    // Streak — jours consécutifs avec scans
-    const { data: scans } = await supabase
-      .from('scans')
-      .select('created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(30)
+    // Streak
+    const { data: scans } = await supabase.from('scans').select('created_at')
+      .eq('user_id', userId).order('created_at', { ascending: false }).limit(30)
 
     let streak = 0
     if (scans && scans.length > 0) {
-      const today = new Date().toDateString()
       const scanDays = [...new Set(scans.map(s => new Date(s.created_at).toDateString()))]
       let checkDate = new Date()
       for (const day of scanDays) {
@@ -93,34 +106,21 @@ export default function DashboardPage() {
       }
     }
 
-    setPortfolioStats({ potential: Math.round(potential), cards: cards.length, streak })
+    setStats({ totalInvested: Math.round(invested), currentValue: Math.round(currentValue), realizedPnL: Math.round(realizedPnL), unrealizedPnL: Math.round(unrealizedPnL), totalPnL: Math.round(totalPnL), roiPercent, cardsByStatus, potential: Math.round(potential), streak })
   }
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('scan_credits, total_scans, email').eq('id', userId).single()
-    if (data) setProfile(data)
-    setLoading(false)
-  }
-
-  const fetchTransactions = async (userId: string) => {
-    const { data } = await supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
-    if (data) setTransactions(data)
-  }
-
-  const handleCheckout = async (packId: string) => {
-    if (!user) return
-    setCheckoutLoading(packId)
+  const handlePurchase = async (priceId: string | undefined) => {
+    if (!priceId || !user) return
+    setPurchasing(priceId)
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack: packId, userId: user.id, userEmail: user.email }),
+        body: JSON.stringify({ priceId, userId: user.id })
       })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    } catch {
-      setCheckoutLoading(null)
-    }
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch { setPurchasing(null) }
   }
 
   if (loading) return (
@@ -129,30 +129,36 @@ export default function DashboardPage() {
     </div>
   )
 
+  const pnlPositive = (stats?.totalPnL || 0) >= 0
+
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-body)' }}>
-            <ArrowLeft size={16} /> Home
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, background: '#0A0A0B', zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-body)' }}>
+            <ArrowLeft size={14} /> Home
           </button>
-          <div style={{ height: 20, width: 1, background: 'rgba(255,255,255,0.1)' }} />
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#555', letterSpacing: 1 }}>DASHBOARD</span>
+          <div style={{ height: 14, width: 1, background: 'rgba(255,255,255,0.1)' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#555', letterSpacing: 1 }}>DASHBOARD</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: 'rgba(245,183,49,0.08)', border: '1px solid rgba(245,183,49,0.2)' }}>
           <Zap size={12} color="#F5B731" />
-          <span style={{ fontSize: 13, color: '#F5B731', fontFamily: 'var(--font-mono)' }}>{profile?.scan_credits || 0} scans left</span>
+          <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>{profile?.scan_credits || 0}</span>
+          <span style={{ fontSize: 11, color: '#666' }}>scans left</span>
         </div>
       </nav>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 32px 80px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px 80px' }}>
 
-        {successMessage && (
-          <div style={{ marginBottom: 32, padding: '16px 20px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <CheckCircle size={18} color="#22C55E" />
-            <span style={{ fontSize: 14, color: '#22C55E', fontFamily: 'var(--font-body)' }}>{successMessage}</span>
-          </div>
-        )}
+        {/* Welcome */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, letterSpacing: 3, color: '#E8E8EC', marginBottom: 4 }}>
+            {profile?.username || 'TRAINER'}
+          </h1>
+          <p style={{ fontSize: 13, color: '#555', fontFamily: 'var(--font-body)' }}>
+            {profile?.total_scans || 0} total scans · {stats?.streak ? `🔥 ${stats.streak} day streak` : 'Start your streak today'}
+          </p>
+        </div>
 
         {/* Market Index */}
         <div style={{ marginBottom: 20 }}>
@@ -160,108 +166,105 @@ export default function DashboardPage() {
         </div>
 
         {/* Potentiel en attente */}
-        {portfolioStats.potential > 0 && (
+        {stats && stats.potential > 0 && (
           <div style={{ marginBottom: 20, padding: '20px 24px', borderRadius: 16, background: 'linear-gradient(135deg, rgba(245,183,49,0.08), rgba(245,183,49,0.03))', border: '1px solid rgba(245,183,49,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 10, color: '#F5B731', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 6 }}>GRADING POTENTIAL IN YOUR PORTFOLIO</div>
-                <div style={{ fontSize: 28, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>+${portfolioStats.potential.toLocaleString()}</div>
-                <div style={{ fontSize: 12, color: '#666', marginTop: 4, fontFamily: 'var(--font-body)' }}>{portfolioStats.cards} raw card{portfolioStats.cards > 1 ? 's' : ''} waiting to be graded</div>
+                <div style={{ fontSize: 28, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>+${stats.potential.toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{stats.cardsByStatus.raw} raw card{stats.cardsByStatus.raw > 1 ? 's' : ''} waiting</div>
               </div>
-              {portfolioStats.streak > 1 && (
-                <div style={{ textAlign: 'center', padding: '12px 16px', borderRadius: 12, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.2)' }}>
-                  <div style={{ fontSize: 24 }}>🔥</div>
-                  <div style={{ fontSize: 18, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700 }}>{portfolioStats.streak}</div>
-                  <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)' }}>DAY STREAK</div>
-                </div>
-              )}
+              <button onClick={() => router.push('/portfolio')} style={{ padding: '10px 18px', borderRadius: 10, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.3)', color: '#F5B731', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+                View portfolio →
+              </button>
             </div>
           </div>
         )}
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 48 }}>
-          {[
-            { label: 'SCANS REMAINING', value: profile?.scan_credits || 0, color: '#F5B731', icon: <Zap size={16} color="#F5B731" /> },
-            { label: 'TOTAL SCANS', value: profile?.total_scans || 0, color: '#E8E8EC', icon: <TrendingUp size={16} color="#555" /> },
-            { label: 'ACCOUNT', value: user?.email?.split('@')[0] || '—', color: '#E8E8EC', icon: <CreditCard size={16} color="#555" />, small: true },
-          ].map((s, i) => (
-            <div key={i} style={{ padding: '20px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1 }}>{s.label}</div>
-                {s.icon}
-              </div>
-              <div style={{ fontSize: s.small ? 18 : 32, fontFamily: s.small ? 'var(--font-body)' : 'var(--font-mono)', color: s.color, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {s.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Packs */}
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 28, letterSpacing: 3, color: '#E8E8EC', marginBottom: 24 }}>BUY CREDITS</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 48 }}>
-          {PACKS.map((pack) => (
-            <div key={pack.id} style={{
-              borderRadius: 16, border: `1px solid ${pack.popular ? 'rgba(245,183,49,0.4)' : 'rgba(255,255,255,0.08)'}`,
-              background: pack.popular ? 'rgba(245,183,49,0.04)' : '#111113',
-              overflow: 'hidden', position: 'relative'
-            }}>
-              {pack.popular && (
-                <div style={{ padding: '6px', textAlign: 'center', background: 'rgba(245,183,49,0.15)', borderBottom: '1px solid rgba(245,183,49,0.2)' }}>
-                  <span style={{ fontSize: 10, color: '#F5B731', fontFamily: 'var(--font-mono)', letterSpacing: 1 }}>MOST POPULAR</span>
-                </div>
-              )}
-              <div style={{ padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, letterSpacing: 3, color: pack.color, marginBottom: 4 }}>{pack.name}</div>
-                <div style={{ fontSize: 36, fontFamily: 'var(--font-mono)', color: '#E8E8EC', fontWeight: 700, marginBottom: 4 }}>${pack.price}</div>
-                <div style={{ fontSize: 13, color: '#555', marginBottom: 20, fontFamily: 'var(--font-body)' }}>${pack.perScan.toFixed(2)} per scan</div>
-                <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', marginBottom: 20, textAlign: 'center' }}>
-                  <span style={{ fontSize: 24, fontFamily: 'var(--font-mono)', color: '#E8E8EC', fontWeight: 700 }}>{pack.credits}</span>
-                  <span style={{ fontSize: 13, color: '#666', marginLeft: 8, fontFamily: 'var(--font-body)' }}>scan credits</span>
-                </div>
-                <button onClick={() => handleCheckout(pack.id)} disabled={checkoutLoading === pack.id} style={{
-                  width: '100%', padding: '13px', borderRadius: 10,
-                  background: pack.popular ? 'linear-gradient(135deg, #F5B731, #D4981A)' : 'rgba(255,255,255,0.06)',
-                  border: pack.popular ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                  color: pack.popular ? '#0A0A0B' : '#E8E8EC',
-                  fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)'
-                }}>
-                  {checkoutLoading === pack.id ? 'Loading...' : 'Buy now'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Transactions */}
-        {transactions.length > 0 && (
-          <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, letterSpacing: 3, color: '#E8E8EC', marginBottom: 20 }}>PURCHASE HISTORY</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {transactions.map((t) => (
-                <div key={t.id} style={{ padding: '16px 20px', borderRadius: 12, background: '#111113', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(245,183,49,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Zap size={16} color="#F5B731" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 14, color: '#E8E8EC', fontWeight: 500, fontFamily: 'var(--font-body)', textTransform: 'capitalize' }}>{t.pack} pack</div>
-                      <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-body)' }}>
-                        <Clock size={10} style={{ display: 'inline', marginRight: 4 }} />
-                        {new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 15, fontFamily: 'var(--font-mono)', color: '#22C55E', fontWeight: 700 }}>+{t.credits_added} credits</div>
-                    <div style={{ fontSize: 12, color: '#555' }}>${t.amount.toFixed(2)}</div>
-                  </div>
+        {/* P&L Dashboard */}
+        {stats && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 3, color: '#E8E8EC', marginBottom: 12 }}>INVESTOR DASHBOARD</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
+              {[
+                { label: 'TOTAL INVESTED', value: `$${stats.totalInvested}`, color: '#E8E8EC', icon: DollarSign },
+                { label: 'CURRENT VALUE', value: `$${stats.currentValue}`, color: '#F5B731', icon: Package },
+                { label: 'UNREALIZED P&L', value: `${stats.unrealizedPnL >= 0 ? '+' : ''}$${stats.unrealizedPnL}`, color: stats.unrealizedPnL >= 0 ? '#22C55E' : '#EF4444', icon: TrendingUp },
+                { label: 'REALIZED P&L', value: `${stats.realizedPnL >= 0 ? '+' : ''}$${stats.realizedPnL}`, color: stats.realizedPnL >= 0 ? '#22C55E' : '#EF4444', icon: CheckCircle },
+                { label: 'TOTAL ROI', value: `${stats.roiPercent >= 0 ? '+' : ''}${stats.roiPercent}%`, color: pnlPositive ? '#22C55E' : '#EF4444', icon: TrendingUp },
+              ].map((s, i) => (
+                <div key={i} style={{ padding: '16px', borderRadius: 12, background: '#111113', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+                  <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 8 }}>{s.label}</div>
+                  <div style={{ fontSize: 20, fontFamily: 'var(--font-mono)', color: s.color, fontWeight: 700 }}>{s.value}</div>
                 </div>
               ))}
             </div>
+
+            {/* Status pipeline */}
+            <div style={{ padding: '16px 20px', borderRadius: 12, background: '#111113', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 14 }}>CARD PIPELINE</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {[
+                  { label: 'RAW', count: stats.cardsByStatus.raw, color: '#888' },
+                  { label: 'SENT', count: stats.cardsByStatus.sent, color: '#F5B731' },
+                  { label: 'GRADED', count: stats.cardsByStatus.graded, color: '#22C55E' },
+                  { label: 'SOLD', count: stats.cardsByStatus.sold, color: '#555' },
+                ].map((s, i) => (
+                  <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
+                    <div style={{ fontSize: 20, fontFamily: 'var(--font-mono)', color: s.color, fontWeight: 700, marginBottom: 4 }}>{s.count}</div>
+                    <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1 }}>{s.label}</div>
+                    {i < 3 && <div style={{ position: 'absolute', right: 0, top: '30%', color: '#333', fontSize: 16 }}>→</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Scans */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 3, color: '#E8E8EC', marginBottom: 12 }}>SCAN CREDITS</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            {CREDIT_PACKS.map((pack, i) => (
+              <div key={i} style={{ padding: '20px', borderRadius: 14, background: pack.tag === 'POPULAR' ? 'rgba(245,183,49,0.06)' : '#111113', border: `1px solid ${pack.tag === 'POPULAR' ? 'rgba(245,183,49,0.25)' : 'rgba(255,255,255,0.07)'}`, position: 'relative' }}>
+                {pack.tag && <div style={{ position: 'absolute', top: -10, left: 16, padding: '2px 10px', borderRadius: 20, background: '#F5B731', color: '#0A0A0B', fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: 1 }}>{pack.tag}</div>}
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 2, color: '#E8E8EC', marginBottom: 4 }}>{pack.name}</div>
+                <div style={{ fontSize: 24, fontFamily: 'var(--font-mono)', color: '#F5B731', fontWeight: 700, marginBottom: 4 }}>{pack.price}</div>
+                <div style={{ fontSize: 12, color: '#555', marginBottom: 16 }}>{pack.credits} scans</div>
+                <button onClick={() => handlePurchase(pack.priceId)} disabled={!!purchasing} style={{
+                  width: '100%', padding: '10px', borderRadius: 8,
+                  background: pack.tag === 'POPULAR' ? 'linear-gradient(135deg, #F5B731, #D4981A)' : 'rgba(255,255,255,0.06)',
+                  border: pack.tag === 'POPULAR' ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  color: pack.tag === 'POPULAR' ? '#0A0A0B' : '#888',
+                  fontSize: 13, fontWeight: pack.tag === 'POPULAR' ? 700 : 400,
+                  cursor: purchasing ? 'default' : 'pointer', fontFamily: 'var(--font-body)'
+                }}>
+                  {purchasing === pack.priceId ? 'Loading...' : 'Get started'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 3, color: '#E8E8EC', marginBottom: 12 }}>QUICK ACTIONS</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+          {[
+            { label: 'Scan a card', icon: '⚡', href: '/' },
+            { label: 'Batch scan', icon: '📦', href: '/batch' },
+            { label: 'Portfolio', icon: '💼', href: '/portfolio' },
+            { label: 'Leaderboard', icon: '🏆', href: '/leaderboard' },
+          ].map((a, i) => (
+            <button key={i} onClick={() => router.push(a.href)} style={{
+              padding: '16px', borderRadius: 12, background: '#111113',
+              border: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 10
+            }}>
+              <span style={{ fontSize: 20 }}>{a.icon}</span>
+              <span style={{ fontSize: 13, color: '#888', fontFamily: 'var(--font-body)' }}>{a.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
