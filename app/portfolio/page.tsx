@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Package, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import GradeFeedback from '../components/GradeFeedback'
 import BatchStrategy from '../components/BatchStrategy'
 import type { CardForBatch } from '../lib/batch-strategy'
 import type { User } from '@supabase/supabase-js'
@@ -181,6 +182,7 @@ function CardRow({ card, onDelete, onStatusChange }: {
   onStatusChange: (id: string, status: PortfolioCard['status']) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [showFeedback, setShowFeedback] = useState<'graded' | 'sold' | null>(null)
   const cfg = STATUS_CONFIG[card.status]
   const invested = ((card.purchase_price || 0) * card.quantity) + (card.grading_cost || 0)
   const value = card.status === 'sold'
