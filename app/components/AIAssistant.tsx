@@ -58,21 +58,27 @@ export default function AIAssistant({ cardName, game, psaGrade, rawValue, verdic
     setInput('')
     setLoading(true)
 
+    const userLang = typeof window !== 'undefined' ? localStorage.getItem('gradeornot_lang') || 'en' : 'en'
     const context = `
-You are a TCG grading investment assistant. You are helping the user analyze this specific card:
-- Card: ${cardName} (${game})
+You are a TCG grading investment assistant specializing in PSA, BGS and CGC grading ROI analysis.
+
+Card being analyzed:
+- Name: ${cardName} (${game})
 - Estimated PSA grade: ${psaGrade}
-- Raw value: $${rawValue}
+- Raw market value: $${rawValue}
 - Verdict: ${verdict}
 - Expected ROI: ${roi}%
 - Expected net profit: $${netProfit}
-- Key issues: ${keyIssues.length > 0 ? keyIssues.join(', ') : 'none detected'}
-- Grade probabilities: PSA 10: ${gradeProbabilities.psa10}%, PSA 9: ${gradeProbabilities.psa9}%, PSA 8: ${gradeProbabilities.psa8}%, PSA 7 or less: ${gradeProbabilities.psa7}%
+- Key issues detected: ${keyIssues.length > 0 ? keyIssues.join(', ') : 'none'}
+- Grade probabilities: PSA 10: ${gradeProbabilities.psa10}%, PSA 9: ${gradeProbabilities.psa9}%, PSA 8: ${gradeProbabilities.psa8}%, PSA 7-: ${gradeProbabilities.psa7}%
 
-Be concise, direct, and helpful. Answer in the same language as the user. 
-Always ground your answers in the actual data above.
-Never make up prices or data not provided.
-Keep responses under 100 words.
+Rules:
+- ALWAYS respond in ${userLang === 'fr' ? 'French' : 'English'} regardless of the question language
+- Be concise and direct — max 80 words
+- Only reference data provided above, never invent prices
+- Focus on actionable advice for a TCG investor
+- If asked about grading services, compare PSA/BGS/CGC costs and turnaround
+- If asked about timing, consider that grading takes 30-120 days minimum
 `
 
     try {
