@@ -1,10 +1,56 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { getWeeklyChallenges, getDaysUntilReset } from '../lib/challenges'
+import { supabase } from '../lib/supabase'
 import { Clock } from 'lucide-react'
 
 export default function WeeklyChallenges() {
   const challenges = getWeeklyChallenges()
   const daysLeft = getDaysUntilReset()
+  const [progress, setProgress] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    fetchProgress()
+  }, [])
+
+  const fetchProgress = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Début de la semaine actuelle (lundi)
+    const now = new Date()
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+    monday.setHours(0, 0, 0, 0)
+
+    // Compter les scans de cette semaine
+    const { count: scanCount } = await supabase
+      .from('scans')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', monday.toISOString())
+
+    // Compter les cartes portfolio
+    const { count: portfolioCount } = await supabase
+      .from('portfolio')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    // Compter les cartes gradées
+    const { count: gradedCount } = await supabase
+      .from('portfolio')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .in('status', ['graded', 'sold'])
+
+    setProgress({
+      scan5: scanCount || 0,
+      scan10: scanCount || 0,
+      scan3: scanCount || 0,
+      portfolio3: portfolioCount || 0,
+      grade1: gradedCount || 0,
+    })
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -45,17 +91,27 @@ export default function WeeklyChallenges() {
             </div>
           </div>
 
-          {/* Progress bar — vide pour l'instant, à connecter avec les vraies données */}
-          <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
-            <div style={{ width: '0%', height: '100%', background: challenge.color, borderRadius: 2 }} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#444', fontFamily: 'var(--font-body)' }}>🎁 {challenge.reward}</span>
-            <span style={{ fontSize: 11, color: challenge.color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-              0 / {challenge.target} {challenge.unit}
-            </span>
-          </div>
+          {/* Progress bar connectée aux vraies données */}
+          {(() => {
+            const current = Math.min(progress[challenge.id] || 0, challenge.target)
+            const pct = Math.round((current / challenge.target) * 100)
+            const done = current >= challenge.target
+            return (
+              <>
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22C55E' : challenge.color, borderRadius: 2, transition: 'width 0.8s ease' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: '#444', fontFamily: 'var(--font-body)' }}>
+                    {done ? '✅' : '🎁'} {challenge.reward}
+                  </span>
+                  <span style={{ fontSize: 11, color: done ? '#22C55E' : challenge.color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    {current} / {challenge.target} {challenge.unit}
+                  </span>
+                </div>
+              </>
+            )
+          })()}
         </div>
       ))}
     </div>
