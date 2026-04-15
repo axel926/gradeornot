@@ -34,7 +34,18 @@ export const metadata: Metadata = {
   keywords: ['TCG', 'PSA', 'grading', 'Pokemon', 'ROI', 'card grading', 'BGS', 'CGC'],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import BottomNav from './components/BottomNav'
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  let isLoggedIn = false
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const { data: { session } } = await supabase.auth.getSession()
+    isLoggedIn = !!session
+  } catch {}
+
   return (
     <html lang="en">
       <head>
@@ -44,7 +55,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body style={{ overscrollBehavior: 'none' }}>{children}</body>
+      <body style={{ overscrollBehavior: 'none' }}>
+        {children}
+        <BottomNav isLoggedIn={isLoggedIn} />
+      </body>
     </html>
   )
 }
