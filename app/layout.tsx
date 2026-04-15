@@ -35,6 +35,7 @@ export const metadata: Metadata = {
 }
 
 import BottomNav from './components/BottomNav'
+import TopNav from './components/TopNav'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body style={{ overscrollBehavior: 'none' }}>
+        <TopNav />
         {children}
         <BottomNav isLoggedIn={false} />
       </body>
