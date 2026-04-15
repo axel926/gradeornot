@@ -15,6 +15,7 @@ import { calculateFinancialScore } from '../lib/financial-scoring'
 import OvervalueAlert from '../components/OvervalueAlert'
 import ErrorBoundary from '../components/ErrorBoundary'
 import DataSources from '../components/DataSources'
+import PSAPopulation from '../components/PSAPopulation'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -382,6 +383,11 @@ export default function ResultsPage() {
                   <span key={i} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, background: 'rgba(239,68,68,0.1)', color: '#FC8181' }}>{issue}</span>
                 ))}
               </div>
+            </div>
+          )}
+          {analysis.psaPopulation && (
+            <div style={{ marginTop: 16 }}>
+              <PSAPopulation population={analysis.psaPopulation} cardName={analysis.cardName} />
             </div>
           )}
         </Section>
