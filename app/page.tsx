@@ -340,8 +340,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Market Index — visible sans login */}
+        {/* Market Index */}
         <div style={{ marginTop: 32 }}>
+          <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 8, textAlign: 'center' }}>TCG MARKET PULSE — KEY CARD PRICES</div>
           <MarketIndex />
         </div>
 

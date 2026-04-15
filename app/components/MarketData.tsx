@@ -146,7 +146,6 @@ export default function MarketDataComponent({ cardName, game, setName }: MarketD
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
               <PriceCell label="MIN" value={data.raw.min} />
-              <PriceCell label="AVG" value={data.raw.avg} />
               <PriceCell label="MEDIAN" value={data.raw.median} highlight />
               <PriceCell label="MAX" value={data.raw.max} />
             </div>

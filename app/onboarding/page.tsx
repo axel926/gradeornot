@@ -192,7 +192,7 @@ export default function OnboardingPage() {
           cursor: 'pointer', fontFamily: 'var(--font-body)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
         }}>
-          {step === STEPS.length - 1 ? <><Zap size={18} /> {current.cta}</> : <>{current.cta} <ArrowRight size={16} /></>}
+          {step === STEPS.length - 1 ? <><Zap size={18} /> {current.cta}</> : <>{current.cta}</>}
         </button>
         {step === STEPS.length - 1 && (
           <button onClick={handleDemo} style={{ width: '100%', padding: '12px', marginTop: 10, background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: '#666', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
