@@ -61,13 +61,6 @@ export default function FeedPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, background: '#0A0A0B', zIndex: 50 }}>
-        <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-body)' }}>
-          <ArrowLeft size={14} /> Home
-        </button>
-        <div style={{ height: 14, width: 1, background: 'rgba(255,255,255,0.1)' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#555', letterSpacing: 1 }}>COMMUNITY FEED</span>
-      </nav>
 
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 20px 80px' }}>
 
