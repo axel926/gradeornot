@@ -1,12 +1,13 @@
 {
   "name": "GradeOrNot",
   "short_name": "GradeOrNot",
-  "description": "TCG card grading ROI calculator",
+  "description": "Scan your TCG card. Know if grading is worth it. Real ROI, real data.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0B",
   "theme_color": "#F5B731",
   "orientation": "portrait",
+  "categories": ["finance", "utilities", "sports"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -19,6 +20,39 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan a card",
+      "short_name": "Scan",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Portfolio",
+      "short_name": "Portfolio",
+      "url": "/portfolio",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Community Feed",
+      "short_name": "Feed",
+      "url": "/feed",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
     }
   ]
 }
