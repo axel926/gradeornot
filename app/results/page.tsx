@@ -12,6 +12,7 @@ import AIAssistant from '../components/AIAssistant'
 import InvestmentScoreComponent from '../components/InvestmentScore'
 import { getTimingRecommendation } from '../lib/timing-engine'
 import OvervalueAlert from '../components/OvervalueAlert'
+import ErrorBoundary from '../components/ErrorBoundary'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -406,7 +407,9 @@ export default function ResultsPage() {
         )}
 
         <Section title="MARKET DATA">
-          <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
+          <ErrorBoundary>
+            <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
+          </ErrorBoundary>
         </Section>
 
         {/* Footer */}
@@ -440,6 +443,7 @@ export default function ResultsPage() {
         </div>
 
         {/* AI Assistant */}
+        <ErrorBoundary>
         <AIAssistant
           cardName={analysis.cardName}
           game={analysis.game}
@@ -451,6 +455,7 @@ export default function ResultsPage() {
           keyIssues={analysis.keyIssues || []}
           gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 }}
         />
+        </ErrorBoundary>
 
         <p style={{ textAlign: 'center', fontSize: 10, color: '#333', marginTop: 24, lineHeight: 1.5, fontFamily: 'var(--font-body)' }}>
           Grade probabilities are statistical estimates. No tool or grading service can guarantee a specific grade outcome. GradeOrNot provides decision support only. <a href='/legal' style={{color: '#444', textDecoration: 'underline'}}>Terms & Privacy</a>
