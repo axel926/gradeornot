@@ -92,6 +92,54 @@ export default function OnboardingPage() {
   const router = useRouter()
   const current = STEPS[step]
 
+  const handleDemo = () => {
+    // On charge un résultat fictif pour montrer l'app en action
+    const demoResult = {
+      analysis: {
+        cardName: 'Charizard',
+        game: 'Pokemon',
+        setName: 'Base Set',
+        setNumber: '4/102',
+        year: '1999',
+        rarity: 'Holo Rare',
+        language: 'English',
+        version: 'Unlimited',
+        condition: { overall: 'Near Mint', centering: 'Good', surfaces: 'Clean', corners: 'Sharp', edges: 'Clean' },
+        criteriaScores: { centering: 8.5, surfaces: 9.0, corners: 8.5, edges: 9.0 },
+        estimatedPSAGrade: 8.5,
+        gradeConfidence: 78,
+        estimatedRawValue: 180,
+        estimatedGradedValue: { PSA10: 850, PSA9: 420, PSA8: 280 },
+        gradingRecommendation: 'GRADE',
+        recommendationReason: '3/5 criteria met. Expected ROI of 42% exceeds the 30% minimum — strong upside with PSA 9+ probability.',
+        keyIssues: ['Slight left border wider than right (estimated 62/38 centering)'],
+        realPriceFound: true,
+        priceSource: 'TCGPlayer',
+        realPriceData: { low: 92.59, mid: 159.99, market: 151.20, high: 209.81 },
+        cardImage: null,
+        gradeProbabilities: { psa10: 8, psa9: 35, psa8: 38, psa7: 19 },
+        decisionRules: [
+          { id: 'roi', label: 'ROI ≥ 30%', passed: true, value: '42%', weight: 30, detail: 'Expected ROI of 42% exceeds the 30% minimum threshold' },
+          { id: 'profit', label: 'Net profit > $20', passed: true, value: '$68', weight: 25, detail: 'Expected net profit of $68 after all fees' },
+          { id: 'grade', label: 'Est. grade ≥ PSA 7.5', passed: true, value: 'PSA 8.5', weight: 20, detail: 'Estimated grade of 8.5 is sufficient for grading to add value' },
+          { id: 'probability', label: 'PSA 9+ probability ≥ 25%', passed: true, value: '43%', weight: 15, detail: '43% chance of PSA 9 or better — solid upside potential' },
+          { id: 'value', label: 'Raw value ≥ $15', passed: false, value: '$180', weight: 10, detail: 'Raw value of $180 is sufficient' },
+        ],
+      },
+      gradingAnalysis: {
+        PSA: {
+          name: 'PSA', url: 'https://www.psacard.com', logo: 'PSA',
+          bestTier: { name: 'Regular', turnaround: '60-120 days', cost: 50, shippingTotal: 40, gradedValue: 280, profit: 68, roi: 42, worthIt: true },
+          tiers: [{ name: 'Economy', turnaround: '100+ days', cost: 25, shippingTotal: 40, gradedValue: 280, profit: 93, roi: 58, worthIt: true }]
+        }
+      },
+      imagePreview: 'https://images.pokemontcg.io/base1/4_hires.png'
+    }
+    localStorage.setItem('gradeornot_onboarded', 'true')
+    sessionStorage.setItem('gradeornot_result', JSON.stringify(demoResult))
+    router.push('/results')
+  }
+
   const handleCTA = () => {
     if (step < STEPS.length - 1) {
       setStep(step + 1)
@@ -146,6 +194,11 @@ export default function OnboardingPage() {
         }}>
           {step === STEPS.length - 1 ? <><Zap size={18} /> {current.cta}</> : <>{current.cta} <ArrowRight size={16} /></>}
         </button>
+        {step === STEPS.length - 1 && (
+          <button onClick={handleDemo} style={{ width: '100%', padding: '12px', marginTop: 10, background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: '#666', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            See a demo analysis first
+          </button>
+        )}
         {step < STEPS.length - 1 && (
           <button onClick={() => { localStorage.setItem('gradeornot_onboarded', 'true'); router.push('/') }} style={{ width: '100%', padding: '12px', marginTop: 10, background: 'none', border: 'none', color: '#444', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
             Skip intro
