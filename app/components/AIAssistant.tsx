@@ -20,10 +20,11 @@ interface AIAssistantProps {
 }
 
 const QUICK_QUESTIONS = [
-  'Why this verdict?',
-  'Why is the ROI low?',
-  'Should I wait before grading?',
-  'Which grader is best for this card?',
+  'What are the main risks?',
+  'Which grader should I use?',
+  'Should I wait for a better price?',
+  'What grade am I likely to get?',
+  'How do I improve my ROI?',
 ]
 
 export default function AIAssistant({ cardName, game, psaGrade, rawValue, verdict, roi, netProfit, keyIssues, gradeProbabilities }: AIAssistantProps) {
@@ -35,10 +36,14 @@ export default function AIAssistant({ cardName, game, psaGrade, rawValue, verdic
 
   useEffect(() => {
     if (open && messages.length === 0) {
-      setMessages([{
-        role: 'assistant',
-        content: `Hey! I'm your grading assistant for **${cardName}**. The verdict is **${verdict}** with an expected ROI of **${roi}%**. What do you want to know?`
-      }])
+      // Message proactif basé sur le verdict
+      const opening = verdict === 'GRADE'
+        ? `✅ **${cardName}** looks like a solid grading opportunity (+${roi}% ROI). The main upside is PSA 9/10 value. Want me to explain the risks or compare grading services?`
+        : verdict === 'SKIP'
+        ? `⚠️ I'd skip grading **${cardName}** for now — the ROI is ${roi}% which doesn't justify the risk. Want to know what would need to change for it to make sense?`
+        : `🤔 **${cardName}** is borderline — ${roi}% ROI is marginal. It could go either way. Want me to walk you through the key factors?`
+
+      setMessages([{ role: 'assistant', content: opening }])
     }
   }, [open])
 
