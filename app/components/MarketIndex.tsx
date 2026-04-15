@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { TrendingUp, TrendingDown, Minus, BarChart2 } from 'lucide-react'
+import { MarketIndexSkeleton } from './Skeleton'
 
 interface IndexData {
   current: { pokemon: number | null; global: number | null; calculatedAt: string; sampleSize: number }
@@ -18,13 +19,7 @@ export default function MarketIndex() {
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) return (
-    <div style={{ padding: '20px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid transparent', borderTopColor: '#F5B731', animation: 'spin 1s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <span style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1 }}>LOADING MARKET INDEX...</span>
-    </div>
-  )
+  if (loading) return <MarketIndexSkeleton />
 
   if (!data?.current?.global) return null
 
