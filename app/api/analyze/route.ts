@@ -341,20 +341,7 @@ Be conservative with grades. Be precise with card identification.`
       cardImage: realPrice.image || null,
     }
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
-      try {
-        const { createClient } = await import('@supabase/supabase-js')
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
-        await supabase.from('scans').insert({
-          card_name: enrichedAnalysis.cardName,
-          game: enrichedAnalysis.game,
-          psa_grade_estimate: enrichedAnalysis.estimatedPSAGrade,
-          raw_value: rawValue,
-          recommendation: enrichedAnalysis.gradingRecommendation,
-          full_analysis: { analysis: enrichedAnalysis, gradingAnalysis }
-        })
-      } catch { /* optional */ }
-    }
+    // Sauvegarde déplacée après le moteur de décision
 
     // Validation de l'identification par la base de données
     const validation = await validateCardIdentification(
@@ -454,6 +441,32 @@ Be conservative with grades. Be precise with card identification.`
           }, { onConflict: 'user_id' })
         }
       } catch { /* leaderboard update failed silently */ }
+    }
+
+    // Sauvegarder le scan complet avec toutes les données
+    if (userId && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+      try {
+        const { createClient: createClientSave } = await import('@supabase/supabase-js')
+        const supabaseSave = createClientSave(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_KEY
+        )
+        await supabaseSave.from('scans').insert({
+          user_id: userId,
+          card_name: finalWithDecision.cardName,
+          game: finalWithDecision.game,
+          psa_grade_estimate: finalWithDecision.estimatedPSAGrade,
+          raw_value: rawValue,
+          recommendation: finalWithDecision.gradingRecommendation,
+          full_analysis: {
+            analysis: finalWithDecision,
+            gradingAnalysis,
+            imagePreview: null
+          }
+        })
+        // Incrémenter total_scans du profil
+        await supabaseSave.rpc('increment_scans', { user_id_param: userId })
+      } catch { /* save failed silently */ }
     }
 
     return NextResponse.json({ analysis: finalWithDecision, gradingAnalysis })
