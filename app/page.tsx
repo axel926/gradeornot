@@ -205,61 +205,6 @@ export default function Home() {
       )}
 
       {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-        position: 'sticky', top: 0, background: '#0A0A0B', zIndex: 50
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={16} color="#0A0A0B" />
-          </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, letterSpacing: 2, color: '#E8E8EC' }}>GRADEORNOT</span>
-        </div>
-
-        {/* Credits badge - toujours visible */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, background: remaining > 2 ? 'rgba(245,183,49,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${remaining > 2 ? 'rgba(245,183,49,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
-            <Zap size={11} color={remaining > 2 ? '#F5B731' : '#EF4444'} />
-            <span style={{ fontSize: 12, color: remaining > 2 ? '#F5B731' : '#EF4444', fontFamily: 'var(--font-mono)' }}>
-              {remaining}
-            </span>
-          </div>
-
-          <LangSwitcher />
-          {/* Desktop nav */}
-          <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {user ? (
-              <>
-                <a href="/portfolio" className="nav-link">Portfolio</a>
-              <a href="/history" className="nav-link">History</a>
-              <a href="/leaderboard" className="nav-link">Leaderboard</a>
-              <a href="/feed" className="nav-link">Feed</a>
-              <a href="/batch" className="nav-link">Batch</a>
-                <a href="/dashboard" className="nav-link">Dashboard</a>
-                <a href="/profile" className="nav-link">Profile</a>
-                <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#888', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-                  <LogOut size={13} /> Sign out
-                </button>
-              </>
-            ) : (
-              <button onClick={() => router.push('/login')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.3)', color: '#F5B731', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500 }}>
-                <User size={13} /> Sign in
-              </button>
-            )}
-          </div>
-
-          {/* Mobile hamburger */}
-          <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)} style={{
-            display: 'none', flexDirection: 'column', gap: 4, background: 'none',
-            border: 'none', cursor: 'pointer', padding: 6
-          }}>
-            <div style={{ width: 20, height: 2, background: menuOpen ? '#F5B731' : '#888', borderRadius: 1, transition: 'all 0.2s' }} />
-            <div style={{ width: 20, height: 2, background: menuOpen ? '#F5B731' : '#888', borderRadius: 1, transition: 'all 0.2s' }} />
-            <div style={{ width: 20, height: 2, background: menuOpen ? '#F5B731' : '#888', borderRadius: 1, transition: 'all 0.2s' }} />
-          </button>
-        </div>
-      </nav>
 
       {/* Mobile menu */}
       {menuOpen && (

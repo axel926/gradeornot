@@ -194,29 +194,6 @@ export default function ResultsPage() {
       `}</style>
 
       {/* Nav */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, background: '#0A0A0B', zIndex: 50 }}>
-        <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-body)' }}>
-          <ArrowLeft size={14} /> Back
-        </button>
-        <div style={{ height: 14, width: 1, background: 'rgba(255,255,255,0.1)' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555', letterSpacing: 1 }}>ANALYSIS REPORT</span>
-        {analysis.cardValidation?.validated && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-            <span style={{ fontSize: 9, color: '#22C55E', fontFamily: 'var(--font-mono)' }}>✓ VERIFIED</span>
-          </div>
-        )}
-        {analysis.cardValidation?.needsConfirmation && !analysis.cardValidation?.validated && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(245,183,49,0.08)', border: '1px solid rgba(245,183,49,0.2)' }}>
-            <span style={{ fontSize: 9, color: '#F5B731', fontFamily: 'var(--font-mono)' }}>⚠ UNVERIFIED</span>
-          </div>
-        )}
-        {analysis.realPriceFound && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-            <Database size={9} color="#22C55E" />
-            <span style={{ fontSize: 9, color: '#22C55E', fontFamily: 'var(--font-mono)' }}>LIVE · {analysis.priceSource}</span>
-          </div>
-        )}
-      </nav>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 20px 80px' }}>
 

@@ -316,23 +316,6 @@ export default function PortfolioPage() {
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
       {showAdd && <AddCardModal onClose={() => setShowAdd(false)} onAdd={handleAdd} />}
 
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, background: '#0A0A0B', zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-body)' }}>
-            <ArrowLeft size={14} /> Home
-          </button>
-          <div style={{ height: 14, width: 1, background: 'rgba(255,255,255,0.1)' }} />
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#555', letterSpacing: 1 }}>PORTFOLIO</span>
-        </div>
-        <button onClick={() => setShowAdd(true)} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10,
-          background: 'linear-gradient(135deg, #F5B731, #D4981A)', border: 'none',
-          color: '#0A0A0B', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)'
-        }}>
-          <Plus size={13} /> Add card
-        </button>
-      </nav>
-
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         {/* Stats */}
