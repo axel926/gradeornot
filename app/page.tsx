@@ -6,7 +6,7 @@ import CardScanner from './components/CardScanner'
 import CardSuggestions from './components/CardSuggestions'
 import AnalyzingLoader from './components/AnalyzingLoader'
 import LangSwitcher from './components/LangSwitcher'
-import MarketIndex from './components/MarketIndex'
+import PortfolioWidget from './components/PortfolioWidget'
 import { supabase } from './lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -285,10 +285,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Market Index */}
+        {/* Portfolio summary ou CTA sign in */}
         <div style={{ marginTop: 32 }}>
-          <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 8, textAlign: 'center' }}>TCG MARKET PULSE — KEY CARD PRICES</div>
-          <MarketIndex />
+          <PortfolioWidget user={user} profile={profile} />
         </div>
 
         {/* Feature pills */}
