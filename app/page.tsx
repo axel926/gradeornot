@@ -232,6 +232,7 @@ export default function Home() {
             {user ? (
               <>
                 <a href="/portfolio" className="nav-link">Portfolio</a>
+              <a href="/history" className="nav-link">History</a>
               <a href="/leaderboard" className="nav-link">Leaderboard</a>
               <a href="/batch" className="nav-link">Batch</a>
                 <a href="/dashboard" className="nav-link">Dashboard</a>
@@ -269,6 +270,7 @@ export default function Home() {
           {user ? (
             <>
               <a href="/portfolio" style={{ padding: '12px 0', color: '#E8E8EC', textDecoration: 'none', fontSize: 15, fontFamily: 'var(--font-body)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Portfolio</a>
+              <a href="/history" style={{ padding: '12px 0', color: '#E8E8EC', textDecoration: 'none', fontSize: 15, fontFamily: 'var(--font-body)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>History</a>
               <a href="/leaderboard" style={{ padding: '12px 0', color: '#E8E8EC', textDecoration: 'none', fontSize: 15, fontFamily: 'var(--font-body)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Leaderboard</a>
               <a href="/batch" style={{ padding: '12px 0', color: '#E8E8EC', textDecoration: 'none', fontSize: 15, fontFamily: 'var(--font-body)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Batch</a>
               <a href="/dashboard" style={{ padding: '12px 0', color: '#E8E8EC', textDecoration: 'none', fontSize: 15, fontFamily: 'var(--font-body)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Dashboard</a>
