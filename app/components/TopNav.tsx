@@ -21,10 +21,6 @@ export default function TopNav() {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Cacher la nav sur certaines pages
-  const hiddenOn = ['/onboarding', '/login']
-  if (hiddenOn.some(p => pathname.startsWith(p))) return null
-
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
@@ -34,6 +30,10 @@ export default function TopNav() {
       }
     })
   }, [pathname])
+
+  // Cacher la nav sur certaines pages — après les hooks
+  const hiddenOn = ['/onboarding', '/login']
+  if (hiddenOn.some(p => pathname.startsWith(p))) return null
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
