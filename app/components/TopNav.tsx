@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Zap, Menu, X, User, LogOut } from 'lucide-react'
+import LangSwitcher from './LangSwitcher'
 import { supabase } from '../lib/supabase'
 
 const NAV_LINKS = [
@@ -86,6 +87,7 @@ export default function TopNav() {
             </div>
           )}
 
+          <LangSwitcher />
           {/* Auth button */}
           {user ? (
             <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#666', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
