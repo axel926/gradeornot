@@ -13,6 +13,7 @@ import InvestmentScoreComponent from '../components/InvestmentScore'
 import { getTimingRecommendation } from '../lib/timing-engine'
 import OvervalueAlert from '../components/OvervalueAlert'
 import ErrorBoundary from '../components/ErrorBoundary'
+import DataSources from '../components/DataSources'
 import ShareCard from '../components/ShareCard'
 
 interface Tier {
@@ -407,6 +408,11 @@ export default function ResultsPage() {
         )}
 
         <Section title="MARKET DATA">
+          <DataSources sources={[
+            { name: analysis.priceSource || 'TCGPlayer', type: analysis.realPriceFound ? 'live' : 'estimated', detail: 'Raw card prices' },
+            { name: 'PSA Pop Report', type: analysis.psaPopulation ? 'live' : 'estimated', detail: 'Grade probabilities' },
+            { name: 'Grading fees', type: 'live', detail: 'PSA/BGS/CGC official rates' },
+          ]} />
           <ErrorBoundary>
             <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
           </ErrorBoundary>
