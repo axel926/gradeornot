@@ -1,6 +1,8 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Home, Package, BarChart2, Users, Clock } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 
 const NAV_ITEMS = [
   { href: '/', icon: Home, label: 'Scan' },
@@ -10,9 +12,16 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: BarChart2, label: 'Dashboard' },
 ]
 
-export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function BottomNav({ isLoggedIn: defaultLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(defaultLoggedIn)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user)
+    })
+  }, [pathname])
 
   // On n'affiche pas la bottom nav sur certaines pages
   const hiddenOn = ['/onboarding', '/login', '/results', '/batch']
