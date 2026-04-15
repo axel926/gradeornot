@@ -453,7 +453,7 @@ export default function ResultsPage() {
         />
 
         <p style={{ textAlign: 'center', fontSize: 10, color: '#333', marginTop: 24, lineHeight: 1.5, fontFamily: 'var(--font-body)' }}>
-          Grade probabilities are statistical estimates. No tool or grading service can guarantee a specific grade outcome. GradeOrNot provides decision support only.
+          Grade probabilities are statistical estimates. No tool or grading service can guarantee a specific grade outcome. GradeOrNot provides decision support only. <a href='/legal' style={{color: '#444', textDecoration: 'underline'}}>Terms & Privacy</a>
         </p>
       </div>
     </div>
