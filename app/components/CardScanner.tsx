@@ -107,7 +107,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
     canvas.height = video.videoHeight
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, 0, 0)
-    setTimeout(() => {
+    setTimeout(async () => {
       const cropped = cropCard(canvas, ctx)
       stopCamera()
       setPreview(cropped)
