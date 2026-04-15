@@ -11,6 +11,7 @@ import ScenarioSimulator from '../components/ScenarioSimulator'
 import AIAssistant from '../components/AIAssistant'
 import InvestmentScoreComponent from '../components/InvestmentScore'
 import { getTimingRecommendation } from '../lib/timing-engine'
+import { calculateFinancialScore } from '../lib/financial-scoring'
 import OvervalueAlert from '../components/OvervalueAlert'
 import ErrorBoundary from '../components/ErrorBoundary'
 import DataSources from '../components/DataSources'
@@ -169,6 +170,17 @@ export default function ResultsPage() {
   const bestService = Object.values(gradingAnalysis)[0]
   const best = bestService?.bestTier
   const quickROI = best ? best.roi : 0
+  const financialScore = calculateFinancialScore({
+    rawValue: analysis.estimatedRawValue,
+    psa10Value: analysis.estimatedGradedValue.PSA10,
+    roi: quickROI,
+    volume7d: 0,
+    volume30d: 0,
+    trend7d: null,
+    trend30d: null,
+    gradeProbabilities: analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 },
+  })
+
   const timing = getTimingRecommendation({
     trend7d: null,
     trend30d: null,
@@ -184,7 +196,7 @@ export default function ResultsPage() {
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
       <style>{`
         .res-grid { display: grid; grid-template-columns: 180px 1fr; gap: 20px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
         .svc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
         @media (max-width: 640px) {
           .res-grid { grid-template-columns: 1fr !important; }
@@ -246,6 +258,7 @@ export default function ResultsPage() {
             { label: 'ROI', value: `${quickROI >= 0 ? '+' : ''}${quickROI}%`, sub: 'return on investment', color: quickROI >= 0 ? '#F5B731' : '#EF4444' },
             { label: 'BREAK-EVEN', value: `$${breakEven}`, sub: 'min. sale price', color: '#888' },
             { label: 'TIMING', value: timing.label, sub: timing.urgency + ' urgency', color: timing.color },
+            { label: 'RISK', value: financialScore.riskLabel, sub: 'grade outcome risk', color: financialScore.riskLabel === 'LOW' ? '#22C55E' : financialScore.riskLabel === 'MEDIUM' ? '#F5B731' : '#EF4444' },
           ].map((k, i) => (
             <div key={i} style={{
               padding: '20px 16px', borderRadius: 14, background: '#111113',
