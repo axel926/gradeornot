@@ -47,17 +47,18 @@ export default function TopNav() {
     <>
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)',
         position: 'sticky', top: 0, background: 'rgba(10,10,11,0.97)',
         backdropFilter: 'blur(20px)', zIndex: 50
       }}>
         {/* Logo */}
         <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={15} color="#0A0A0B" />
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={16} color="#0A0A0B" />
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 2, color: '#E8E8EC' }}>GRADEORNOT</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 2, color: '#E8E8EC' }} className="logo-text">GRADEORNOT</span>
         </button>
+        <style>{`.logo-text { display: none; } @media (min-width: 400px) { .logo-text { display: inline !important; } }`}</style>
 
         {/* Desktop links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="desktop-nav-links">
