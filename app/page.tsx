@@ -192,7 +192,7 @@ export default function Home() {
       {/* Welcome toast */}
       {welcomeToast && (
         <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 1000,
+          position: 'fixed', bottom: 100, left: 16, right: 16, zIndex: 1000,
           padding: '16px 24px', borderRadius: 14,
           background: '#111113', border: '1px solid rgba(34,197,94,0.4)',
           display: 'flex', alignItems: 'center', gap: 12,

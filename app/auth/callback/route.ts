@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url)
+  const { searchParams } = new URL(req.url)
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://gradeornot.vercel.app'
   const code = searchParams.get('code')
 
   if (code) {
