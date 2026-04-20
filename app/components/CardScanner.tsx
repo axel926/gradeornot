@@ -41,12 +41,6 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment')
   const [detecting, setDetecting] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
-  }, [])
-
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop())
@@ -211,7 +205,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
     <div>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
-      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+      <input ref={cameraInputRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
 
       {isMobile ? (
