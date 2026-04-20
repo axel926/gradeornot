@@ -47,8 +47,8 @@ export default function TopNav() {
     <>
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: 'max(env(safe-area-inset-top), 14px) 14px 10px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-        position: 'sticky', top: 0, background: 'rgba(10,10,11,0.97)',
+        paddingTop: 'max(env(safe-area-inset-top), 14px)', paddingBottom: '10px', paddingLeft: '14px', paddingRight: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(10,10,11,0.97)',
         backdropFilter: 'blur(20px)', zIndex: 50
       }}>
         {/* Logo */}
