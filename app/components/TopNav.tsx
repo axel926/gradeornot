@@ -61,7 +61,7 @@ export default function TopNav() {
         <style>{`.logo-text { display: none; } @media (min-width: 400px) { .logo-text { display: inline !important; } }`}</style>
 
         {/* Desktop links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="desktop-nav-links">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="desktop-nav-links" style={{ display: 'none' }}>
           <style>{`
             .desktop-nav-links { display: none; }
             @media (min-width: 640px) { .desktop-nav-links { display: flex !important; } }

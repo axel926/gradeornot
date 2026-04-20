@@ -227,14 +227,6 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
             <p style={{ fontSize: 16, fontWeight: 500, color: '#E8E8EC', margin: '0 0 8px', fontFamily: 'var(--font-body)' }}>Drop your card photo here</p>
             <p style={{ fontSize: 13, color: '#666', margin: 0, fontFamily: 'var(--font-body)' }}>or click to browse · JPG, PNG, WEBP</p>
           </div>
-          <button onClick={() => startCamera('environment')} style={{
-            width: '100%', padding: '14px', borderRadius: 12,
-            background: 'rgba(245,183,49,0.06)', border: '1px solid rgba(245,183,49,0.2)',
-            color: '#F5B731', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
-          }}>
-            <Camera size={18} />
-          </button>
         </>
 
       {cameraError && (
