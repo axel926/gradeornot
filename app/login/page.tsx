@@ -29,7 +29,7 @@ export default function LoginPage() {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `https://gradeornot.vercel.app/auth/callback` },
+      options: { redirectTo: `https://gradeornot.vercel.app` },
     })
     if (error) { setError(error.message); setGoogleLoading(false) }
   }
