@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError(null)
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `https://gradeornot.vercel.app/auth/callback` },
     })
     if (error) { setError(error.message); setLoading(false) }
     else { setSent(true); setLoading(false) }
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `https://gradeornot.vercel.app/auth/callback` },
     })
     if (error) { setError(error.message); setGoogleLoading(false) }
   }
