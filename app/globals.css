@@ -18,6 +18,10 @@
 
 * { box-sizing: border-box; }
 
+:root {
+  --nav-height: calc(57px + env(safe-area-inset-top));
+}
+
 body {
   background: var(--vault-900);
   color: #E8E8EC;

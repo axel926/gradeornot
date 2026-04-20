@@ -45,6 +45,7 @@ export default function TopNav() {
 
   return (
     <>
+      <div style={{ height: "var(--nav-height)", flexShrink: 0 }} />
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         paddingTop: 'max(env(safe-area-inset-top), 14px)', paddingBottom: '10px', paddingLeft: '14px', paddingRight: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)',

@@ -49,7 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ overscrollBehavior: 'none' }}>
         <TopNav />
-        <div style={{ height: "calc(57px + env(safe-area-inset-top))" }} />
         {children}
         <BottomNav isLoggedIn={true} />
       </body>
