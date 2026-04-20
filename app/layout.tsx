@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ overscrollBehavior: 'none' }}>
         <TopNav />
         {children}
-        <BottomNav isLoggedIn={false} />
+        <BottomNav isLoggedIn={true} />
       </body>
     </html>
   )
