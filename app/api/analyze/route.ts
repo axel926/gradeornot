@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
 
     if (overrideCard) {
       const condRes = await client.messages.create({
-        model: 'claude-opus-4-6',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         messages: [{
           role: 'user',
@@ -190,7 +190,7 @@ Respond ONLY with valid JSON:
 
     } else if (manualSearch) {
       const searchRes = await client.messages.create({
-        model: 'claude-opus-4-6',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1500,
         messages: [{
           role: 'user',
@@ -232,7 +232,7 @@ Respond ONLY with valid JSON:
 
     } else {
       const response = await client.messages.create({
-        model: 'claude-opus-4-6',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 2500,
         messages: [{
           role: 'user',
