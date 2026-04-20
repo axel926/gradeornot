@@ -146,3 +146,37 @@ input, textarea, select {
   50% { background-color: rgba(245,183,49,0.1); }
   100% { background-color: rgba(245,183,49,0); }
 }
+
+/* ── MOBILE TAP FEEDBACK ── */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+button:active, a:active, [role="button"]:active {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+/* ── PAGE TRANSITION ── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main, .page-content {
+  animation: fadeSlideIn 0.2s ease;
+}
+
+/* ── NAV LOADING BAR ── */
+@keyframes navProgress {
+  0%   { width: 0%; opacity: 1; }
+  80%  { width: 90%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+.nav-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #F5B731, #D4981A);
+  z-index: 9999;
+  animation: navProgress 0.6s ease forwards;
+}
