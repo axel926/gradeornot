@@ -39,7 +39,6 @@ export default function TopNav() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    setUser(null)
     setMenuOpen(false)
     router.push('/')
   }
