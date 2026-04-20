@@ -37,7 +37,7 @@ export default function BottomNav({ isLoggedIn: defaultLoggedIn }: { isLoggedIn:
         background: 'rgba(10,10,11,0.95)',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
-        padding: '8px 0 env(safe-area-inset-bottom)',
+        padding: '8px 0 max(env(safe-area-inset-bottom), 8px)',
         display: 'none', // Caché sur desktop
       }} className="bottom-nav">
         <style>{`
