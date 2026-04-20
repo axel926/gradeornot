@@ -1,32 +1,23 @@
 'use client'
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { Camera, Upload, X, RotateCcw, Zap, FlipHorizontal } from 'lucide-react'
+import { Camera, Upload, X, RotateCcw, Zap, FlipHorizontal, Image as ImageIcon } from 'lucide-react'
 
-// Compresse une image base64 pour réduire la taille avant envoi à Claude
-// Sur mobile une photo fait 3-5MB — on vise 300-500KB max
 async function compressImage(dataUrl: string, maxWidth = 1200, quality = 0.75): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      
-      // Calcul des nouvelles dimensions en gardant le ratio
       let width = img.width
       let height = img.height
       if (width > maxWidth) {
         height = Math.round(height * maxWidth / width)
         width = maxWidth
       }
-      
       canvas.width = width
       canvas.height = height
-      
       const ctx = canvas.getContext('2d')
       if (!ctx) { resolve(dataUrl); return }
-      
       ctx.drawImage(img, 0, 0, width, height)
-      
-      // toDataURL avec qualité réduite = fichier plus petit
       resolve(canvas.toDataURL('image/jpeg', quality))
     }
     img.src = dataUrl
@@ -41,6 +32,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
   const [mode, setMode] = useState<'idle' | 'camera' | 'preview'>('idle')
@@ -49,6 +41,11 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment')
   const [detecting, setDetecting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+  }, [])
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -73,7 +70,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
       }
       setMode('camera')
     } catch {
-      setCameraError('Camera access denied. Please use file upload instead.')
+      setCameraError('Camera access denied. Use photo library instead.')
     }
   }
 
@@ -83,7 +80,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
     await startCamera(newFacing)
   }
 
-  const cropCard = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): string => {
+  const cropCard = (canvas: HTMLCanvasElement): string => {
     const { width, height } = canvas
     const cropRatio = 0.85
     const cropW = Math.floor(width * cropRatio)
@@ -108,7 +105,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, 0, 0)
     setTimeout(async () => {
-      const cropped = cropCard(canvas, ctx)
+      const cropped = cropCard(canvas)
       stopCamera()
       setPreview(cropped)
       setMode('preview')
@@ -119,23 +116,24 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
     }, 400)
   }, [stopCamera, onImageReady])
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) return
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const dataUrl = e.target?.result as string
       const img = new Image()
-      img.onload = () => {
+      img.onload = async () => {
         const canvas = document.createElement('canvas')
         canvas.width = img.width
         canvas.height = img.height
         const ctx = canvas.getContext('2d')!
         ctx.drawImage(img, 0, 0)
-        const cropped = cropCard(canvas, ctx)
+        const cropped = cropCard(canvas)
         setPreview(cropped)
         setMode('preview')
-        const base64 = cropped.split(',')[1]
-        onImageReady(base64, 'image/jpeg', cropped)
+        const compressed = await compressImage(cropped)
+        const base64 = compressed.split(',')[1]
+        onImageReady(base64, 'image/jpeg', compressed)
       }
       img.src = dataUrl
     }
@@ -156,7 +154,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
           <img src={preview} alt="Card preview" style={{ width: '100%', maxHeight: 420, objectFit: 'contain', display: 'block' }} />
           <div style={{
             position: 'absolute', top: 12, right: 12,
-            background: 'rgba(10,10,11,0.8)', borderRadius: 8, padding: '6px 10px',
+            background: 'rgba(10,10,11,0.85)', borderRadius: 8, padding: '6px 10px',
             display: 'flex', alignItems: 'center', gap: 6,
             border: '1px solid rgba(245,183,49,0.2)'
           }}>
@@ -211,38 +209,63 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
 
   return (
     <div>
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f) }}
-        onClick={() => fileRef.current?.click()}
-        style={{
-          border: `2px dashed ${dragging ? 'rgba(245,183,49,0.6)' : 'rgba(255,255,255,0.1)'}`,
-          borderRadius: 20, padding: '50px 40px', textAlign: 'center', cursor: 'pointer',
-          background: dragging ? 'rgba(245,183,49,0.03)' : 'rgba(255,255,255,0.02)',
-          transition: 'all 0.2s ease', marginBottom: 16
-        }}
-      >
-        <div style={{ width: 56, height: 56, borderRadius: 16, margin: '0 auto 20px', background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Upload size={24} color="#F5B731" />
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+        onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
+
+      {isMobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={() => fileRef.current?.click()} style={{
+            width: '100%', padding: '22px 20px', borderRadius: 16,
+            background: 'rgba(245,183,49,0.06)', border: '1px solid rgba(245,183,49,0.25)',
+            color: '#F5B731', fontSize: 16, fontWeight: 600, cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12
+          }}>
+            <ImageIcon size={22} /> Choose from library
+          </button>
+          <button onClick={() => cameraInputRef.current?.click()} style={{
+            width: '100%', padding: '22px 20px', borderRadius: 16,
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
+            color: '#888', fontSize: 16, fontWeight: 600, cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12
+          }}>
+            <Camera size={22} /> Take a photo
+          </button>
         </div>
-        <p style={{ fontSize: 16, fontWeight: 500, color: '#E8E8EC', margin: '0 0 8px', fontFamily: 'var(--font-body)' }}>
-          Drop your card photo here
-        </p>
-        <p style={{ fontSize: 13, color: '#666', margin: 0, fontFamily: 'var(--font-body)' }}>
-          or click to browse · JPG, PNG, WEBP
-        </p>
-        <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-          onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
-      </div>
-      <button onClick={() => startCamera('environment')} style={{
-        width: '100%', padding: '14px', borderRadius: 12,
-        background: 'rgba(245,183,49,0.06)', border: '1px solid rgba(245,183,49,0.2)',
-        color: '#F5B731', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
-      }}>
-        <Camera size={18} /> Use camera
-      </button>
+      ) : (
+        <>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f) }}
+            onClick={() => fileRef.current?.click()}
+            style={{
+              border: `2px dashed ${dragging ? 'rgba(245,183,49,0.6)' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 20, padding: '50px 40px', textAlign: 'center', cursor: 'pointer',
+              background: dragging ? 'rgba(245,183,49,0.03)' : 'rgba(255,255,255,0.02)',
+              transition: 'all 0.2s ease', marginBottom: 16
+            }}
+          >
+            <div style={{ width: 56, height: 56, borderRadius: 16, margin: '0 auto 20px', background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Upload size={24} color="#F5B731" />
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 500, color: '#E8E8EC', margin: '0 0 8px', fontFamily: 'var(--font-body)' }}>Drop your card photo here</p>
+            <p style={{ fontSize: 13, color: '#666', margin: 0, fontFamily: 'var(--font-body)' }}>or click to browse · JPG, PNG, WEBP</p>
+          </div>
+          <button onClick={() => startCamera('environment')} style={{
+            width: '100%', padding: '14px', borderRadius: 12,
+            background: 'rgba(245,183,49,0.06)', border: '1px solid rgba(245,183,49,0.2)',
+            color: '#F5B731', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
+          }}>
+            <Camera size={18} /> Use camera
+          </button>
+        </>
+      )}
+
       {cameraError && (
         <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#FC8181' }}>
           {cameraError}

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Zap, TrendingUp, Shield, ChevronRight, Camera, LogOut, User } from 'lucide-react'
+import { Zap, TrendingUp, Shield, ChevronRight, Camera, LogOut, User, Menu, X as XIcon } from 'lucide-react'
 import CardScanner from './components/CardScanner'
 import CardSuggestions from './components/CardSuggestions'
 import AnalyzingLoader from './components/AnalyzingLoader'
@@ -205,6 +205,66 @@ export default function Home() {
       )}
 
       {/* Nav */}
+      <nav style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        position: 'sticky', top: 0, zIndex: 100, background: '#0A0A0B'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={14} color="#0A0A0B" />
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 2, color: '#E8E8EC' }}>GRADEORNOT</span>
+        </div>
+        <div className="desktop-nav" style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <a href="/feed" className="nav-link">Feed</a>
+          <a href="/portfolio" className="nav-link">Portfolio</a>
+          <a href="/leaderboard" className="nav-link">Leaderboard</a>
+          <a href="/batch" className="nav-link">Batch</a>
+          {user ? (
+            <button onClick={handleSignOut} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Sign out</button>
+          ) : (
+            <button onClick={() => router.push('/login')} style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.3)', color: '#F5B731', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Sign in</button>
+          )}
+        </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMenuOpen(v => !v)}
+          style={{ background: 'none', border: 'none', color: '#E8E8EC', cursor: 'pointer', padding: 4, display: 'none' }}
+        >
+          {menuOpen ? <XIcon size={24} /> : <Menu size={24} />}
+        </button>
+      </nav>
+      <nav style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        position: 'sticky', top: 0, zIndex: 100, background: '#0A0A0B'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={14} color="#0A0A0B" />
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 2, color: '#E8E8EC' }}>GRADEORNOT</span>
+        </div>
+        <div className="desktop-nav" style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <a href="/feed" className="nav-link">Feed</a>
+          <a href="/portfolio" className="nav-link">Portfolio</a>
+          <a href="/leaderboard" className="nav-link">Leaderboard</a>
+          <a href="/batch" className="nav-link">Batch</a>
+          {user ? (
+            <button onClick={handleSignOut} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Sign out</button>
+          ) : (
+            <button onClick={() => router.push('/login')} style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,183,49,0.1)', border: '1px solid rgba(245,183,49,0.3)', color: '#F5B731', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Sign in</button>
+          )}
+        </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMenuOpen(v => !v)}
+          style={{ background: 'none', border: 'none', color: '#E8E8EC', cursor: 'pointer', padding: 4, display: 'none' }}
+        >
+          {menuOpen ? <XIcon size={24} /> : <Menu size={24} />}
+        </button>
+      </nav>
 
       {/* Mobile menu */}
       {menuOpen && (
