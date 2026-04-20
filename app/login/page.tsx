@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0B', display: 'flex', flexDirection: 'column' }}>
-      <nav style={{ padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center' }}>
+      <nav style={{ paddingTop: 'max(env(safe-area-inset-top), 20px)', paddingBottom: '20px', paddingLeft: '20px', paddingRight: '20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center' }}>
         <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-body)' }}>
           <ArrowLeft size={16} /> Back
         </button>
