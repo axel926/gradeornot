@@ -55,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TopNav />
         <div className="page-content">{children}</div>
         <BottomNav isLoggedIn={true} />
+        </AuthProvider>
       </body>
     </html>
   )
