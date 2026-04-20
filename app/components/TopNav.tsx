@@ -47,7 +47,7 @@ export default function TopNav() {
     <>
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: 'env(safe-area-inset-top, 10px) 14px 10px', borderBottom: '1px solid rgba(255,255,255,0.06)',
         position: 'sticky', top: 0, background: 'rgba(10,10,11,0.97)',
         backdropFilter: 'blur(20px)', zIndex: 50
       }}>
