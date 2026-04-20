@@ -1,9 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Zap, Menu, X, User, LogOut } from 'lucide-react'
 import LangSwitcher from './LangSwitcher'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/auth-context'
 
 const NAV_LINKS = [
   { href: '/', label: 'Scan' },
@@ -16,32 +17,21 @@ const NAV_LINKS = [
 ]
 
 export default function TopNav() {
-  const [user, setUser] = useState<null | { email: string }>(null)
+  const { user: authUser } = useAuth()
   const [credits, setCredits] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const user = authUser ? { email: authUser.email || '' } : null
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({ email: session.user.email || '' })
-        supabase.from('profiles').select('scan_credits').eq('id', session.user.id).single()
-          .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
-      }
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({ email: session.user.email || '' })
-        supabase.from('profiles').select('scan_credits').eq('id', session.user.id).single()
-          .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
-      } else {
-        setUser(null)
-        setCredits(null)
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [pathname])
+    if (authUser) {
+      supabase.from('profiles').select('scan_credits').eq('id', authUser.id).single()
+        .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
+    } else {
+      setCredits(null)
+    }
+  }, [authUser])
 
   // Cacher la nav sur certaines pages — après les hooks
   const hiddenOn = ['/onboarding', '/login']

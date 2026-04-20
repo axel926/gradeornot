@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 
 import BottomNav from './components/BottomNav'
 import TopNav from './components/TopNav'
+import { AuthProvider } from './lib/auth-context'
 import NavigationProgress from './components/NavigationProgress'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body style={{ overscrollBehavior: 'none' }}>
+        <AuthProvider>
         <NavigationProgress />
         <TopNav />
         <div className="page-content">{children}</div>
