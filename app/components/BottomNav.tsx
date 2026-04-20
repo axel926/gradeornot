@@ -21,6 +21,10 @@ export default function BottomNav({ isLoggedIn: defaultLoggedIn }: { isLoggedIn:
     supabase.auth.getUser().then(({ data }) => {
       setIsLoggedIn(!!data.user)
     })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user)
+    })
+    return () => subscription.unsubscribe()
   }, [pathname])
 
   // On n'affiche pas la bottom nav sur certaines pages
