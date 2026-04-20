@@ -1,9 +1,9 @@
 'use client'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 
-export default function ConfirmPage() {
+function ConfirmInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -14,7 +14,6 @@ export default function ConfirmPage() {
     supabase.auth.exchangeCodeForSession(code).then(async ({ data, error }) => {
       if (error || !data.user) { router.push('/login'); return }
 
-      // Créer le profil
       await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,5 +33,17 @@ export default function ConfirmPage() {
     <div style={{ minHeight: '100vh', background: '#0A0A0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ fontFamily: 'var(--font-mono)', color: '#F5B731', fontSize: 13, letterSpacing: 1 }}>SIGNING IN...</div>
     </div>
+  )
+}
+
+export default function ConfirmPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#0A0A0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', color: '#F5B731', fontSize: 13, letterSpacing: 1 }}>SIGNING IN...</div>
+      </div>
+    }>
+      <ConfirmInner />
+    </Suspense>
   )
 }
