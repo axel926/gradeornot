@@ -39,6 +39,7 @@ export default function Home() {
   const [freeScansUsed, setFreeScansUsed] = useState(0)
   const [welcomeToast, setWelcomeToast] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [resultData, setResultData] = useState<Record<string, unknown> | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -129,8 +130,10 @@ export default function Home() {
       } else if (profile) {
         setProfile({ ...profile, scan_credits: profile.scan_credits - 1, total_scans: profile.total_scans + 1 })
       }
-      sessionStorage.setItem('gradeornot_result', JSON.stringify({ ...data, imagePreview: imageData.preview }))
-      router.push('/results')
+      const result = { ...data, imagePreview: imageData.preview }
+      sessionStorage.setItem('gradeornot_result', JSON.stringify(result))
+      setResultData(result)
+      setUploading(false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.')
       setUploading(false)
@@ -154,8 +157,10 @@ export default function Home() {
       })
       if (!res.ok) throw new Error('Search failed')
       const data = await res.json()
-      sessionStorage.setItem('gradeornot_result', JSON.stringify({ ...data, imagePreview: imageData.preview }))
-      router.push('/results')
+      const result = { ...data, imagePreview: imageData.preview }
+      sessionStorage.setItem('gradeornot_result', JSON.stringify(result))
+      setResultData(result)
+      setUploading(false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Search failed')
       setUploading(false)
