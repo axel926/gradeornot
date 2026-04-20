@@ -32,7 +32,8 @@ export default function HistoryPage() {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const data = { user: session?.user ?? null }
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
       fetchScans(data.user.id)

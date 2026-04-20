@@ -6,6 +6,8 @@ export const supabase = createBrowserClient(
   {
     auth: {
       persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
       storageKey: 'gradeornot-auth',
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     }
