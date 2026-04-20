@@ -64,7 +64,7 @@ export default function TopNav() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="desktop-nav-links">
           <style>{`
             .desktop-nav-links { display: none; }
-            @media (min-width: 900px) { .desktop-nav-links { display: flex !important; } }
+            @media (min-width: 640px) { .desktop-nav-links { display: flex !important; } }
           `}</style>
           {NAV_LINKS.map(link => (
             <a key={link.href} href={link.href} style={{
@@ -102,7 +102,7 @@ export default function TopNav() {
 
           {/* Hamburger mobile */}
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: 'flex', flexDirection: 'column', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 6 }} className="hamburger-btn">
-            <style>{`.hamburger-btn { display: flex !important; } @media (min-width: 900px) { .hamburger-btn { display: none !important; } }`}</style>
+            <style>{`.hamburger-btn { display: flex !important; } @media (min-width: 640px) { .hamburger-btn { display: none !important; } }`}</style>
             {menuOpen ? <X size={18} color="#F5B731" /> : <Menu size={18} color="#888" />}
           </button>
         </div>
