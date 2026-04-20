@@ -208,29 +208,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
       <input ref={cameraInputRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
 
-      {isMobile ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button onClick={() => fileRef.current?.click()} style={{
-            width: '100%', padding: '22px 20px', borderRadius: 16,
-            background: 'rgba(245,183,49,0.06)', border: '1px solid rgba(245,183,49,0.25)',
-            color: '#F5B731', fontSize: 16, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12
-          }}>
-            <ImageIcon size={22} /> Choose from library
-          </button>
-          <button onClick={() => cameraInputRef.current?.click()} style={{
-            width: '100%', padding: '22px 20px', borderRadius: 16,
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
-            color: '#888', fontSize: 16, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12
-          }}>
-            <Camera size={22} /> Take a photo
-          </button>
-        </div>
-      ) : (
-        <>
+      <>
           <div
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -258,7 +236,6 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
             <Camera size={18} /> Use camera
           </button>
         </>
-      )}
 
       {cameraError && (
         <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#FC8181' }}>
