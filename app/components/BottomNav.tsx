@@ -15,7 +15,12 @@ const NAV_ITEMS = [
 export default function BottomNav({ isLoggedIn: defaultLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(defaultLoggedIn)
+  // Vérifie localStorage immédiatement pour éviter le flash grisé
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const keys = Object.keys(localStorage)
+    return keys.some(k => k.includes('gradeornot-auth') || k.includes('supabase'))
+  })
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -25,7 +30,7 @@ export default function BottomNav({ isLoggedIn: defaultLoggedIn }: { isLoggedIn:
       setIsLoggedIn(!!session?.user)
     })
     return () => subscription.unsubscribe()
-  }, [pathname])
+  }, [])
 
   // On n'affiche pas la bottom nav sur certaines pages
   const hiddenOn = ['/onboarding', '/login', '/results', '/batch']

@@ -30,6 +30,17 @@ export default function TopNav() {
           .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
       }
     })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({ email: session.user.email || '' })
+        supabase.from('profiles').select('scan_credits').eq('id', session.user.id).single()
+          .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
+      } else {
+        setUser(null)
+        setCredits(null)
+      }
+    })
+    return () => subscription.unsubscribe()
   }, [pathname])
 
   // Cacher la nav sur certaines pages — après les hooks
