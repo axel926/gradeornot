@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const hash = window.location.hash
     if (hash && hash.includes('access_token')) {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        console.log('[AuthProvider] hash session:', session?.user?.email)
         setUser(session?.user ?? null)
         setLoading(false)
         // Nettoyer le hash de l'URL
@@ -28,13 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[AuthProvider] event:', event, 'user:', session?.user?.email)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthProvider] getSession:', session?.user?.email)
       setUser(session?.user ?? null)
       setLoading(false)
     })
