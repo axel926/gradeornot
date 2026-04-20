@@ -23,10 +23,10 @@ export default function TopNav() {
   const pathname = usePathname()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUser({ email: data.user.email || '' })
-        supabase.from('profiles').select('scan_credits').eq('id', data.user.id).single()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ email: session.user.email || '' })
+        supabase.from('profiles').select('scan_credits').eq('id', session.user.id).single()
           .then(({ data: profile }) => { if (profile) setCredits(profile.scan_credits) })
       }
     })
