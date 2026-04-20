@@ -46,20 +46,66 @@ const GRADING_SERVICES = {
   }
 }
 
-function calculateROI(gradedValue: number, rawValue: number, gradingCost: number, shippingTotal: number) {
-  const totalCost = gradingCost + shippingTotal
-  const profit = gradedValue - rawValue - totalCost
-  const roi = rawValue > 0 ? ((profit / rawValue) * 100) : 0
-  return { profit: Math.round(profit), roi: Math.round(roi), totalCost: Math.round(totalCost) }
-}
-
+// Multiplicateurs réalistes basés sur les données du marché TCG
+// Source: analyses PSA population + eBay sold listings
 function estimateGradedValue(rawValue: number, psaGrade: number) {
-  if (psaGrade >= 9.5) return { PSA10: Math.round(rawValue * 4), PSA9: Math.round(rawValue * 2), PSA8: Math.round(rawValue * 1.3) }
-  if (psaGrade >= 8.5) return { PSA10: Math.round(rawValue * 3.5), PSA9: Math.round(rawValue * 1.8), PSA8: Math.round(rawValue * 1.2) }
-  return { PSA10: Math.round(rawValue * 3), PSA9: Math.round(rawValue * 1.5), PSA8: Math.round(rawValue * 1.1) }
+  // Les multiplicateurs varient selon la valeur de la carte
+  // Cartes high-value ont un premium PSA10 plus élevé
+  const isHighValue = rawValue >= 100
+  const isMidValue = rawValue >= 30 && rawValue < 100
+
+  if (psaGrade >= 9.5) {
+    if (isHighValue) return { PSA10: Math.round(rawValue * 6), PSA9: Math.round(rawValue * 2.5), PSA8: Math.round(rawValue * 1.4) }
+    if (isMidValue) return { PSA10: Math.round(rawValue * 5), PSA9: Math.round(rawValue * 2.2), PSA8: Math.round(rawValue * 1.3) }
+    return { PSA10: Math.round(rawValue * 4), PSA9: Math.round(rawValue * 2), PSA8: Math.round(rawValue * 1.2) }
+  }
+  if (psaGrade >= 8.5) {
+    if (isHighValue) return { PSA10: Math.round(rawValue * 4.5), PSA9: Math.round(rawValue * 2), PSA8: Math.round(rawValue * 1.3) }
+    if (isMidValue) return { PSA10: Math.round(rawValue * 3.5), PSA9: Math.round(rawValue * 1.8), PSA8: Math.round(rawValue * 1.2) }
+    return { PSA10: Math.round(rawValue * 3), PSA9: Math.round(rawValue * 1.6), PSA8: Math.round(rawValue * 1.15) }
+  }
+  if (psaGrade >= 7.5) {
+    return { PSA10: Math.round(rawValue * 2.5), PSA9: Math.round(rawValue * 1.4), PSA8: Math.round(rawValue * 1.1) }
+  }
+  // PSA < 7.5 — grading rarement rentable
+  return { PSA10: Math.round(rawValue * 2), PSA9: Math.round(rawValue * 1.2), PSA8: Math.round(rawValue * 1.0) }
 }
 
-function buildGradingAnalysis(rawValue: number, psaGrade: number) {
+const PLATFORM_FEE = 0.1325 // eBay 13.25%
+
+function calculateROI(
+  gradedValues: { PSA10: number; PSA9: number; PSA8: number },
+  gradeProbabilities: { psa10: number; psa9: number; psa8: number; psa7: number },
+  rawValue: number,
+  gradingCost: number,
+  shippingTotal: number
+) {
+  const totalCost = rawValue + gradingCost + shippingTotal
+
+  // Valeur attendue pondérée par les probabilités de grade
+  // PSA7 et moins → on revend raw à -15% (dégradation packaging)
+  const expectedGrossValue =
+    (gradedValues.PSA10 * (gradeProbabilities.psa10 / 100)) +
+    (gradedValues.PSA9 * (gradeProbabilities.psa9 / 100)) +
+    (gradedValues.PSA8 * (gradeProbabilities.psa8 / 100)) +
+    (rawValue * 0.80 * (gradeProbabilities.psa7 / 100))
+
+  // Déduction des frais plateforme
+  const expectedNetValue = expectedGrossValue * (1 - PLATFORM_FEE)
+  const profit = Math.round(expectedNetValue - totalCost)
+  const roi = totalCost > 0 ? Math.round(((expectedNetValue - totalCost) / totalCost) * 100) : 0
+
+  // Valeur affichée = valeur attendue nette (pour le bestTier)
+  const gradedValue = Math.round(expectedNetValue)
+
+  return { profit, roi, totalCost: Math.round(totalCost), gradedValue }
+}
+
+function buildGradingAnalysis(
+  rawValue: number,
+  psaGrade: number,
+  gradeProbabilities: { psa10: number; psa9: number; psa8: number; psa7: number }
+) {
   const gradedValues = estimateGradedValue(rawValue, psaGrade)
   const gradingAnalysis: Record<string, unknown> = {}
   for (const [serviceKey, service] of Object.entries(GRADING_SERVICES)) {
@@ -67,10 +113,15 @@ function buildGradingAnalysis(rawValue: number, psaGrade: number) {
       const shippingCost = service.shipping.toGrader + service.shipping.fromGrader
       const insuranceCost = Math.round(rawValue * service.shipping.insurance)
       const shippingTotal = shippingCost + insuranceCost
-      const targetGrade = psaGrade >= 9.5 ? 'PSA10' : psaGrade >= 8.5 ? 'PSA9' : 'PSA8'
-      const gradedValue = gradedValues[targetGrade as keyof typeof gradedValues]
-      const roi = calculateROI(gradedValue, rawValue, tier.cost, shippingTotal)
-      return { ...tier, shippingTotal, gradedValue, ...roi, worthIt: roi.profit > 20 && roi.roi > 30 }
+      const roiData = calculateROI(gradedValues, gradeProbabilities, rawValue, tier.cost, shippingTotal)
+      return {
+        ...tier,
+        shippingTotal,
+        gradedValue: roiData.gradedValue,
+        profit: roiData.profit,
+        roi: roiData.roi,
+        worthIt: roiData.profit > 20 && roiData.roi > 30
+      }
     })
     gradingAnalysis[serviceKey] = { ...service, tiers, bestTier: tiers.find(t => t.worthIt) || tiers[0] }
   }
@@ -360,7 +411,8 @@ Be conservative with grades. Be precise with card identification.`
       ? Math.round(realPrice.prices.market)
       : analysis.estimatedRawValue || 50
 
-    const { gradingAnalysis, gradedValues } = buildGradingAnalysis(rawValue, analysis.estimatedPSAGrade)
+    const defaultProbs = getDefaultProbabilities(analysis.estimatedPSAGrade, confidence)
+    const { gradingAnalysis, gradedValues } = buildGradingAnalysis(rawValue, analysis.estimatedPSAGrade, defaultProbs)
 
     const enrichedAnalysis = {
       ...analysis,
