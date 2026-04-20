@@ -233,7 +233,7 @@ export default function CardScanner({ onImageReady }: CardScannerProps) {
             color: '#F5B731', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
           }}>
-            <Camera size={18} /> Use camera
+            <Camera size={18} />
           </button>
         </>
 
