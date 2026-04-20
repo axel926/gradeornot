@@ -111,6 +111,41 @@ function conditionToScore(value: string, type: 'centering' | 'surfaces' | 'corne
 }
 
 export async function POST(req: NextRequest) {
+  // MODE MOCK — retourne un résultat fictif sans appeler Claude
+  if (process.env.MOCK_CLAUDE === 'true') {
+    const mockResult = {
+      analysis: {
+        cardName: 'Charizard', game: 'Pokemon', setName: 'Base Set',
+        setNumber: '4/102', year: '1999', rarity: 'Holo Rare',
+        language: 'English', version: 'Unlimited',
+        condition: { overall: 'Near Mint', centering: 'Good', surfaces: 'Clean', corners: 'Sharp', edges: 'Clean' },
+        criteriaScores: { centering: 8.5, surfaces: 9.0, corners: 8.5, edges: 9.0 },
+        estimatedPSAGrade: 8.5, gradeConfidence: 78,
+        estimatedRawValue: 180,
+        estimatedGradedValue: { PSA10: 850, PSA9: 420, PSA8: 280 },
+        gradingRecommendation: 'GRADE',
+        recommendationReason: 'Strong ROI potential with PSA 9+ probability above 40%.',
+        keyIssues: ['Slight centering issue — left border wider than right'],
+        realPriceFound: true, priceSource: 'TCGPlayer',
+        realPriceData: { market: 151.20, mid: 159.99, low: 92.59, high: 209.81 },
+        gradeProbabilities: { psa10: 8, psa9: 35, psa8: 38, psa7: 19 },
+        decisionRules: [
+          { id: 'roi', label: 'ROI ≥ 30%', passed: true, value: '42%', weight: 30, detail: 'Expected ROI of 42%' },
+          { id: 'profit', label: 'Net profit > $20', passed: true, value: '$68', weight: 25, detail: 'Net profit $68' },
+          { id: 'grade', label: 'Est. grade ≥ PSA 7.5', passed: true, value: 'PSA 8.5', weight: 20, detail: 'Grade estimate 8.5' },
+          { id: 'probability', label: 'PSA 9+ probability ≥ 25%', passed: true, value: '43%', weight: 15, detail: '43% chance PSA 9+' },
+          { id: 'value', label: 'Raw value ≥ $15', passed: true, value: '$180', weight: 10, detail: 'Raw value $180' },
+        ],
+      },
+      gradingAnalysis: {
+        PSA: {
+          name: 'PSA', bestTier: { name: 'Regular', turnaround: '60-120 days', cost: 50, shippingTotal: 40, gradedValue: 280, profit: 68, roi: 42, worthIt: true },
+          tiers: []
+        }
+      }
+    }
+    return NextResponse.json(mockResult)
+  }
   try {
     const { image, mimeType, overrideCard, manualSearch, userId } = await req.json()
     if (!image) return NextResponse.json({ error: 'No image provided' }, { status: 400 })
