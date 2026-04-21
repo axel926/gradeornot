@@ -374,7 +374,10 @@ Be conservative with grades. Be precise with card identification.`
       })
 
       const text = response.content[0].type === 'text' ? response.content[0].text : ''
-      analysis = JSON.parse(text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+      // Extraction robuste du premier bloc JSON valide
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new SyntaxError('No JSON found in response')
+      analysis = JSON.parse(jsonMatch[0])
     }
 
     if (!analysis.isCardDetected) {
