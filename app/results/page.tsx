@@ -403,15 +403,13 @@ export default function ResultsPage() {
           </div>
         )}
 
-        <Section title="MARKET DATA">
+        <Section title="MARKET DATA" defaultOpen={true}>
           <DataSources sources={[
             { name: analysis.priceSource || 'TCGPlayer', type: analysis.realPriceFound ? 'live' : 'estimated', detail: 'Raw card prices' },
             { name: 'PSA Pop Report', type: analysis.psaPopulation ? 'live' : 'estimated', detail: 'Grade probabilities' },
             { name: 'Grading fees', type: 'live', detail: 'PSA/BGS/CGC official rates' },
           ]} />
-          <ErrorBoundary>
             <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
-          </ErrorBoundary>
         </Section>
 
         {/* Footer */}
