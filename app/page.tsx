@@ -132,8 +132,7 @@ export default function Home() {
       }
       const result = { ...data, imagePreview: imageData.preview }
       sessionStorage.setItem('gradeornot_result', JSON.stringify(result))
-      setResultData(result)
-      setUploading(false)
+      router.push('/results')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.')
       setUploading(false)
@@ -159,8 +158,7 @@ export default function Home() {
       const data = await res.json()
       const result = { ...data, imagePreview: imageData.preview }
       sessionStorage.setItem('gradeornot_result', JSON.stringify(result))
-      setResultData(result)
-      setUploading(false)
+      router.push('/results')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Search failed')
       setUploading(false)
