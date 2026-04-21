@@ -75,11 +75,12 @@ export default function MarketDataComponent({ cardName, game, setName }: MarketD
     })
       .then(r => r.json())
       .then(d => {
+        console.log('[MarketData] received:', JSON.stringify(d).slice(0,200))
         setData(d.data)
         setCardmarket(d.cardmarket)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch((e) => { console.log('[MarketData] error:', e); setLoading(false) })
   }, [cardName, game, setName])
 
   if (loading) return (

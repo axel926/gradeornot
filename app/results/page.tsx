@@ -424,15 +424,6 @@ export default function ResultsPage() {
             psaGrade={analysis.estimatedPSAGrade}
             rawValue={analysis.estimatedRawValue}
           />
-          <ShareCard
-            cardName={analysis.cardName}
-            game={analysis.game}
-            verdict={analysis.gradingRecommendation}
-            roi={quickROI}
-            netProfit={quickProfit}
-            psaGrade={analysis.estimatedPSAGrade}
-            rawValue={analysis.estimatedRawValue}
-          />
           <button onClick={() => { sessionStorage.clear(); router.push('/') }} style={{
             padding: '11px 24px', borderRadius: 10, background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)', color: '#666', fontSize: 13,
