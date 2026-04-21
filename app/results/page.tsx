@@ -151,9 +151,12 @@ export default function ResultsPage() {
   const router = useRouter()
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     const stored = sessionStorage.getItem('gradeornot_result')
     if (!stored) { router.push('/'); return }
-    setData(JSON.parse(stored))
+    const parsed = JSON.parse(stored)
+    console.log('[Results] cardName:', parsed?.analysis?.cardName, 'game:', parsed?.analysis?.game)
+    setData(parsed)
   }, [router])
 
   if (!data) return (
