@@ -8,6 +8,7 @@ export interface CardPrice {
   name: string
   set: string
   image: string | null
+  currency: 'USD' | 'EUR'
   prices: {
     low: number | null
     mid: number | null
@@ -16,6 +17,9 @@ export interface CardPrice {
   }
   found: boolean
 }
+
+// Taux de conversion EUR→USD (approximatif, mis à jour manuellement)
+const EUR_TO_USD = 1.08
 
 function extractPokemonPrice(card: any, version?: string): { low: number | null; mid: number | null; high: number | null; market: number | null } {
   const tcg = card.tcgplayer?.prices
@@ -99,7 +103,7 @@ function cleanSetName(setName: string): string {
 
 export async function getPokemonPrice(cardName: string, setName?: string, setNumber?: string, version?: string): Promise<CardPrice> {
   const headers = { 'X-Api-Key': process.env.POKEMONTCG_API_KEY || '' }
-  const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  const empty: CardPrice = { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
 
   const cleanedSetName = setName ? cleanSetName(setName) : undefined
   const setId = cleanedSetName ? SET_NAME_TO_ID[cleanedSetName.toLowerCase()] : undefined
@@ -122,7 +126,7 @@ export async function getPokemonPrice(cardName: string, setName?: string, setNum
         ) || data.data[0]
         const prices = extractPokemonPrice(card, version)
         if (prices.market) {
-          return { name: card.name, set: card.set?.name || '', image: card.images?.large || card.images?.small || null, prices, found: true }
+          return { name: card.name, set: card.set?.name || '', image: card.images?.large || card.images?.small || null, currency: 'USD', prices, found: true }
         }
       }
     }
@@ -138,7 +142,7 @@ export async function getPokemonPrice(cardName: string, setName?: string, setNum
         const card = data.data[0]
         const prices = extractPokemonPrice(card, version)
         if (prices.market) {
-          return { name: card.name, set: card.set?.name || '', image: card.images?.large || card.images?.small || null, prices, found: true }
+          return { name: card.name, set: card.set?.name || '', image: card.images?.large || card.images?.small || null, currency: 'USD', prices, found: true }
         }
       }
     }
@@ -166,6 +170,7 @@ export async function getPokemonPrice(cardName: string, setName?: string, setNum
       name: best.card.name,
       set: best.card.set?.name || '',
       image: best.card.images?.large || best.card.images?.small || null,
+      currency: 'USD',
       prices: best.prices,
       found: true
     }
@@ -185,7 +190,7 @@ export async function getMagicPrice(cardName: string, setName?: string): Promise
     if (!data.data || data.data.length === 0) {
       const res2 = await fetch(`${SCRYFALL_API}/cards/named?fuzzy=${encodeURIComponent(cardName)}`)
       const card = await res2.json()
-      if (card.object === 'error') return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+      if (card.object === 'error') return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
       return {
         name: card.name,
         set: card.set_name || '',
@@ -196,6 +201,7 @@ export async function getMagicPrice(cardName: string, setName?: string): Promise
           high: card.prices?.usd ? parseFloat(card.prices.usd) * 1.3 : null,
           market: card.prices?.usd ? parseFloat(card.prices.usd) : null,
         },
+        currency: 'USD',
         found: true
       }
     }
@@ -211,10 +217,11 @@ export async function getMagicPrice(cardName: string, setName?: string): Promise
         high: card.prices?.usd ? parseFloat(card.prices.usd) * 1.3 : null,
         market: card.prices?.usd ? parseFloat(card.prices.usd) : null,
       },
+      currency: 'USD',
       found: true
     }
   } catch {
-    return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+    return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
   }
 }
 
@@ -225,7 +232,7 @@ export async function getYugiohPrice(cardName: string): Promise<CardPrice> {
     )
     const data = await res.json()
     const card = data?.data?.[0]
-    if (!card) return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+    if (!card) return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
 
     const prices = card.card_prices?.[0]
     const tcg = prices?.tcgplayer_price ? parseFloat(prices.tcgplayer_price) : null
@@ -242,10 +249,11 @@ export async function getYugiohPrice(cardName: string): Promise<CardPrice> {
         high: market ? Math.round(market * 1.3 * 100) / 100 : null,
         market,
       },
+      currency: 'USD',
       found: !!market
     }
   } catch {
-    return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+    return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
   }
 }
 
@@ -256,7 +264,7 @@ export async function getLorcanaPrice(cardName: string): Promise<CardPrice> {
     )
     const data = await res.json()
     const card = data?.results?.[0]
-    if (!card) return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+    if (!card) return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
 
     const market = card.prices?.usd ? parseFloat(card.prices.usd) : null
 
@@ -270,10 +278,11 @@ export async function getLorcanaPrice(cardName: string): Promise<CardPrice> {
         high: market ? Math.round(market * 1.3 * 100) / 100 : null,
         market,
       },
+      currency: 'USD',
       found: !!market
     }
   } catch {
-    return { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+    return { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
   }
 }
 
@@ -290,7 +299,7 @@ const GAME_SLUG_RAPIDAPI: Record<string, string> = {
 }
 
 export async function getCardmarketRapidPrice(cardName: string, gameSlug: string, setName?: string, setNumber?: string): Promise<CardPrice> {
-  const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  const empty: CardPrice = { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
   if (!RAPIDAPI_KEY) return empty
 
   const rapidSlug = GAME_SLUG_RAPIDAPI[gameSlug]
@@ -343,15 +352,19 @@ export async function getCardmarketRapidPrice(cardName: string, gameSlug: string
     // Prix market = moyenne 7j Cardmarket ou TCGPlayer
     const market = cm?.['7d_average'] || cm?.['30d_average'] || cm?.lowest_near_mint || tcg?.market_price || null
 
+    // Convertit EUR→USD pour cohérence avec le reste du calcul ROI
+    const toUSD = (v: number | null) => v ? Math.round(v * EUR_TO_USD * 100) / 100 : null
+
     return {
       name: card.name,
       set: card.episode?.name || '',
       image: card.image || null,
+      currency: 'EUR',
       prices: {
-        low: cm?.lowest_near_mint || null,
-        mid: cm?.['30d_average'] || null,
+        low: toUSD(cm?.lowest_near_mint || null),
+        mid: toUSD(cm?.['30d_average'] || null),
         high: null,
-        market: market,
+        market: toUSD(market),
       },
       found: !!market
     }
@@ -361,7 +374,7 @@ export async function getCardmarketRapidPrice(cardName: string, gameSlug: string
 }
 
 export async function getTCGAPIPrice(cardName: string, gameSlug: string, setName?: string, setNumber?: string): Promise<CardPrice> {
-  const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  const empty: CardPrice = { name: cardName, set: '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
   try {
     const apiKey = process.env.TCGAPI_KEY
     if (!apiKey) return empty
@@ -411,6 +424,7 @@ export async function getTCGAPIPrice(cardName: string, gameSlug: string, setName
         high: null,
         market: card.market_price || null,
       },
+      currency: 'USD',
       found: true
     }
   } catch {
@@ -456,5 +470,5 @@ export async function getCardPrice(cardName: string, game: string, setName?: str
     }
   }
 
-  return { name: cardName, set: setName || '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  return { name: cardName, set: setName || '', image: null, currency: 'USD', prices: { low: null, mid: null, high: null, market: null }, found: false }
 }

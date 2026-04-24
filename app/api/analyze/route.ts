@@ -437,7 +437,7 @@ Be conservative with grades. Be precise with card identification.`
       gradeConfidence: confidence,
       realPriceFound: realPrice.found,
       priceSource: realPrice.found
-        ? (analysis.game?.toLowerCase().includes('magic') ? 'Scryfall' : 'TCGPlayer')
+        ? (realPrice.currency === 'EUR' ? 'Cardmarket (EUR→USD)' : analysis.game?.toLowerCase().includes('magic') ? 'Scryfall' : 'TCGPlayer')
         : 'AI Estimate',
       realPriceData: realPrice.found ? realPrice.prices : null,
       cardImage: realPrice.image || null,
