@@ -103,7 +103,7 @@ Rules:
       {/* Floating button */}
       {!open && (
         <button onClick={() => setOpen(true)} style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 100,
+          position: 'fixed', bottom: 'max(calc(env(safe-area-inset-bottom) + 90px), 90px)', right: 16, zIndex: 100,
           width: 56, height: 56, borderRadius: '50%',
           background: 'linear-gradient(135deg, #F5B731, #D4981A)',
           border: 'none', cursor: 'pointer',
@@ -117,8 +117,8 @@ Rules:
       {/* Chat panel */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 100,
-          width: 340, height: 480, borderRadius: 20,
+          position: 'fixed', bottom: 'max(calc(env(safe-area-inset-bottom) + 90px), 90px)', right: 16, zIndex: 100,
+          width: 'min(340px, calc(100vw - 32px))', height: 'min(480px, calc(100dvh - 200px))', borderRadius: 20,
           background: '#111113', border: '1px solid rgba(245,183,49,0.2)',
           display: 'flex', flexDirection: 'column',
           boxShadow: '0 8px 40px rgba(0,0,0,0.6)'
