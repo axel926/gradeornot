@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Camera, Upload, X, RotateCcw, Zap, FlipHorizontal, Image as ImageIcon } from 'lucide-react'
+import AppLogo from './AppLogo'
 
 async function compressImage(dataUrl: string, maxWidth = 1200, quality = 0.75): Promise<string> {
   return new Promise((resolve) => {

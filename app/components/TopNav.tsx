@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Zap, Menu, X, User, LogOut, Settings } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Zap } from 'lucide-react'
+import AppLogo from './AppLogo'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
 
@@ -55,9 +56,7 @@ export default function TopNav() {
       }}>
         {/* Logo */}
         <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #F5B731, #D4981A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={16} color="#0A0A0B" />
-          </div>
+          <AppLogo size={32} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, letterSpacing: 2, color: '#E8E8EC' }} className="logo-text">GRADEORNOT</span>
         </button>
         <style>{`.logo-text { display: none; } @media (min-width: 400px) { .logo-text { display: inline !important; } }`}</style>

@@ -8,7 +8,6 @@ import ExportPDF from '../components/ExportPDF'
 import ROICalculator from '../components/ROICalculator'
 import DecisionEngine from '../components/DecisionEngine'
 import ScenarioSimulator from '../components/ScenarioSimulator'
-import AIAssistant from '../components/AIAssistant'
 import InvestmentScoreComponent from '../components/InvestmentScore'
 import { getTimingRecommendation } from '../lib/timing-engine'
 import { calculateFinancialScore } from '../lib/financial-scoring'
@@ -419,20 +418,7 @@ export default function ResultsPage() {
           </button>
         </div>
 
-        {/* AI Assistant */}
-        <ErrorBoundary>
-        <AIAssistant
-          cardName={analysis.cardName}
-          game={analysis.game}
-          psaGrade={analysis.estimatedPSAGrade}
-          rawValue={effectiveRawValue}
-          verdict={analysis.gradingRecommendation}
-          roi={quickROI}
-          netProfit={quickProfit}
-          keyIssues={analysis.keyIssues || []}
-          gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 }}
-        />
-        </ErrorBoundary>
+
 
         <p style={{ textAlign: 'center', fontSize: 10, color: '#333', marginTop: 24, lineHeight: 1.5, fontFamily: 'var(--font-body)' }}>
           Grade probabilities are statistical estimates. No tool or grading service can guarantee a specific grade outcome. GradeOrNot provides decision support only. <a href='/legal' style={{color: '#444', textDecoration: 'underline'}}>Terms & Privacy</a>
