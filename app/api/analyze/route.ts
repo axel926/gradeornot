@@ -409,7 +409,9 @@ Be conservative with grades. Be precise with card identification.`
     }
     confidence = Math.min(100, Math.max(0, Number(confidence) || 60))
 
+    console.log('[price lookup]', analysis.cardName, analysis.game, analysis.setName, analysis.setNumber, analysis.version)
     const realPrice = await getCardPrice(analysis.cardName, analysis.game, analysis.setName, analysis.setNumber, analysis.version)
+    console.log('[price result]', realPrice.found, realPrice.set, realPrice.prices.market)
     const rawValue = realPrice.found && realPrice.prices.market
       ? Math.round(realPrice.prices.market)
       : analysis.estimatedRawValue || 50
