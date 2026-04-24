@@ -277,6 +277,89 @@ export async function getLorcanaPrice(cardName: string): Promise<CardPrice> {
   }
 }
 
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY
+const RAPIDAPI_HOST = 'cardmarket-api-tcg.p.rapidapi.com'
+
+const GAME_SLUG_RAPIDAPI: Record<string, string> = {
+  'pokemon': 'pokemon',
+  'magic': 'magic',
+  'yugioh': 'yugioh',
+  'one-piece-card-game': 'one-piece',
+  'lorcana-tcg': 'lorcana',
+  'digimon-card-game': 'digimon',
+}
+
+export async function getCardmarketRapidPrice(cardName: string, gameSlug: string, setName?: string, setNumber?: string): Promise<CardPrice> {
+  const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  if (!RAPIDAPI_KEY) return empty
+
+  const rapidSlug = GAME_SLUG_RAPIDAPI[gameSlug]
+  if (!rapidSlug) return empty
+
+  try {
+    // Cherche par numéro de carte si dispo (plus précis)
+    const searchTerm = setNumber ? setNumber : cardName
+    const res = await fetch(
+      `https://${RAPIDAPI_HOST}/${rapidSlug}/cards/search?search=${encodeURIComponent(searchTerm)}&sort=relevance`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-rapidapi-host': RAPIDAPI_HOST,
+          'x-rapidapi-key': RAPIDAPI_KEY,
+        },
+        next: { revalidate: 3600 }
+      }
+    )
+    if (!res.ok) return empty
+    const data = await res.json()
+    const cards = data?.data || []
+    if (!cards.length) return empty
+
+    // Match par numéro exact en priorité
+    let card = null
+    if (setNumber) {
+      card = cards.find((c: any) =>
+        c.card_code_number === setNumber ||
+        c.card_number === setNumber ||
+        c.name_numbered?.includes(setNumber)
+      )
+    }
+
+    // Fallback — match par nom + set
+    if (!card && setName) {
+      const cleanSet = setName.toLowerCase().replace(/\(french\)/gi, '').trim()
+      card = cards.find((c: any) =>
+        c.name?.toLowerCase().includes(cardName.toLowerCase()) &&
+        c.episode?.name?.toLowerCase().includes(cleanSet.split(' ')[0])
+      )
+    }
+
+    if (!card) card = cards.find((c: any) => c.name?.toLowerCase().includes(cardName.toLowerCase())) || cards[0]
+    if (!card) return empty
+
+    const cm = card.prices?.cardmarket
+    const tcg = card.prices?.tcg_player
+
+    // Prix market = moyenne 7j Cardmarket ou TCGPlayer
+    const market = cm?.['7d_average'] || cm?.['30d_average'] || cm?.lowest_near_mint || tcg?.market_price || null
+
+    return {
+      name: card.name,
+      set: card.episode?.name || '',
+      image: card.image || null,
+      prices: {
+        low: cm?.lowest_near_mint || null,
+        mid: cm?.['30d_average'] || null,
+        high: null,
+        market: market,
+      },
+      found: !!market
+    }
+  } catch {
+    return empty
+  }
+}
+
 export async function getTCGAPIPrice(cardName: string, gameSlug: string, setName?: string, setNumber?: string): Promise<CardPrice> {
   const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
   try {
@@ -356,10 +439,15 @@ export async function getCardPrice(cardName: string, game: string, setName?: str
   const gameSlug = Object.entries(gameSlugMap).find(([key]) => gameLower.includes(key))?.[1]
 
   if (gameSlug) {
+    // Cardmarket RapidAPI — priorité (EUR + vrais prix marché)
+    const cmResult = await getCardmarketRapidPrice(cardName, gameSlug, setName, setNumber)
+    if (cmResult.found) return cmResult
+
+    // Fallback TCG API (USD TCGPlayer)
     const tcgResult = await getTCGAPIPrice(cardName, gameSlug, setName, setNumber)
     if (tcgResult.found) return tcgResult
 
-    // Fallback APIs pour Pokemon et Magic
+    // Fallback APIs spécifiques Pokemon et Magic
     if (gameLower.includes('pokemon') || gameLower.includes('pokémon')) {
       return getPokemonPrice(cardName, setName, setNumber, version)
     }
