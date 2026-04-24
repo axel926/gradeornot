@@ -251,8 +251,20 @@ export async function getMarketDataWithEbay(cardName: string, game: string, setN
     getEbaySoldListings(cardName, game, setName)
   ])
 
+  if (!ebayData && !baseData) return null
   if (!ebayData) return baseData
-  if (!baseData) return null
+  if (!baseData) {
+    // eBay seul — baseData indisponible
+    return {
+      raw: ebayData.raw,
+      grades: ebayData.grades,
+      volume: ebayData.volume,
+      trends: ebayData.trends,
+      source: 'eBay Sold Listings',
+      gradeSource: ebayData.grades.psa10 ? 'eBay Sold Listings' : 'Estimated',
+      lastUpdated: new Date().toISOString(),
+    }
+  }
 
   // eBay override — données réelles prioritaires
   return {

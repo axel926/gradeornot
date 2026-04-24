@@ -72,6 +72,72 @@ export async function POST(req: NextRequest) {
     const normalizedName = await normalizeToEnglish(cardName, game)
     console.log('[market] normalized:', cardName, '->', normalizedName)
 
+    // Pokemon TCG API — données réelles TCGPlayer + Cardmarket
+    if (game.toLowerCase().includes('pokemon')) {
+      try {
+        const searchRes = await fetch(
+          `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(normalizedName)}&pageSize=10`,
+          { headers: { 'X-Api-Key': process.env.POKEMONTCG_API_KEY || '' } }
+        )
+        const searchData = await searchRes.json()
+        const cards = searchData.data || []
+
+        // Trouve la carte la plus pertinente (set matching si dispo)
+        const card = setName
+          ? cards.find((c: any) => c.set?.name?.toLowerCase().includes(setName.toLowerCase())) || cards[0]
+          : cards[0]
+
+        if (card) {
+          const tcg = card.tcgplayer?.prices
+          const cm = card.cardmarket?.prices
+
+          // Prix raw depuis TCGPlayer (holofoil > normal > 1stEdition)
+          const tcgPrices = tcg?.holofoil || tcg?.normal || tcg?.['1stEditionHolofoil'] || tcg?.unlimited || null
+          const rawMarket = tcgPrices?.market || tcgPrices?.mid || null
+
+          // Estimation grades PSA depuis le prix raw (multiplicateurs standards)
+          const estimateGrades = (raw: number | null) => raw ? {
+            psa7: Math.round(raw * 1.5 * 100) / 100,
+            psa8: Math.round(raw * 2.5 * 100) / 100,
+            psa9: Math.round(raw * 4 * 100) / 100,
+            psa10: Math.round(raw * 10 * 100) / 100,
+          } : { psa7: null, psa8: null, psa9: null, psa10: null }
+
+          const data = {
+            raw: {
+              avg: rawMarket,
+              median: rawMarket,
+              min: tcgPrices?.low || null,
+              max: tcgPrices?.high || null,
+              count: rawMarket ? 1 : 0,
+            },
+            grades: estimateGrades(rawMarket),
+            volume: { days7: 0, days30: 0 },
+            trends: { days7: null, days30: null },
+            source: 'TCGPlayer',
+            gradeSource: 'Estimated from raw price',
+            lastUpdated: new Date().toISOString(),
+          }
+
+          const cardmarket = cm ? {
+            raw: {
+              avg1: cm.avg1 || null,
+              avg7: cm.avg7 || null,
+              avg30: cm.avg30 || null,
+              trendPrice: cm.trendPrice || null,
+              lowPrice: cm.lowPrice || null,
+            },
+            source: 'Cardmarket',
+          } : null
+
+          return NextResponse.json({ data, cardmarket })
+        }
+      } catch (e) {
+        console.error('[market] Pokemon TCG API error:', e)
+      }
+    }
+
+    // Fallback autres jeux — eBay + baseData
     const [baseData, ebayData, cardmarketData] = await Promise.all([
       getMarketData(normalizedName, game, setName),
       getEbaySoldListings(normalizedName, game, setName),
@@ -96,6 +162,16 @@ export async function POST(req: NextRequest) {
         trends: { days7: ebayData.trends.days7 || baseData.trends.days7, days30: baseData.trends.days30 },
         source: ebayData.raw.count > 0 ? `eBay + ${baseData.source}` : baseData.source,
         gradeSource: ebayData.grades.psa10 ? 'eBay Sold Listings' : baseData.gradeSource,
+      }
+    } else if (ebayData && !baseData) {
+      data = {
+        raw: ebayData.raw,
+        grades: ebayData.grades,
+        volume: ebayData.volume,
+        trends: ebayData.trends,
+        source: 'eBay Sold Listings',
+        gradeSource: ebayData.grades.psa10 ? 'eBay Sold Listings' : 'Estimated',
+        lastUpdated: new Date().toISOString(),
       }
     }
 
