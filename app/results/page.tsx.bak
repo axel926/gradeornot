@@ -233,42 +233,45 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* ═══ WHY THIS VERDICT — inline compact ═══ */}
+        {/* ═══ DECISION ENGINE ═══ */}
         {analysis.decisionRules && analysis.decisionRules.length > 0 && (
-          <div style={{ marginBottom: 16, padding: '16px', borderRadius: 14, background: '#111113', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ fontSize: 10, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 2, marginBottom: 12 }}>WHY THIS VERDICT</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {analysis.decisionRules.map((rule: { id: string; label: string; passed: boolean; value: string; detail: string }) => (
-                <div key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: rule.passed ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.1)', border: `1px solid ${rule.passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: 10, color: rule.passed ? '#22C55E' : '#EF4444' }}>{rule.passed ? '✓' : '✗'}</span>
-                  </div>
-                  <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 12, color: rule.passed ? '#E8E8EC' : '#666', fontFamily: 'var(--font-body)' }}>{rule.label}</span>
-                    <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: rule.passed ? '#22C55E' : '#EF4444', flexShrink: 0 }}>{rule.value}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div style={{ marginBottom: 16 }}>
+            <Section title="WHY THIS VERDICT" defaultOpen={true}>
+              <DecisionEngine
+                rules={analysis.decisionRules}
+                verdict={analysis.gradingRecommendation}
+              />
+            </Section>
           </div>
         )}
 
-
+        {/* ═══ INVESTMENT SCORE ═══ */}
+        <div style={{ marginBottom: 16 }}>
+          <InvestmentScoreComponent
+            roi={quickROI}
+            netProfit={quickProfit}
+            psaGrade={analysis.estimatedPSAGrade}
+            rawValue={effectiveRawValue}
+            gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 }}
+          />
+        </div>
 
         {/* ═══ 3 KPIs CLÉS ═══ */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+        <div className="kpi-grid" style={{ marginBottom: 16 }}>
           {[
             { label: 'NET PROFIT', value: `${quickProfit >= 0 ? '+' : ''}$${quickProfit}`, sub: 'after all costs', color: quickProfit >= 0 ? '#22C55E' : '#EF4444' },
             { label: 'ROI', value: `${quickROI >= 0 ? '+' : ''}${quickROI}%`, sub: 'return on investment', color: quickROI >= 0 ? '#F5B731' : '#EF4444' },
             { label: 'BREAK-EVEN', value: `$${breakEven}`, sub: 'min. sale price', color: '#888' },
+            { label: 'TIMING', value: timing.label, sub: timing.urgency + ' urgency', color: timing.color },
+            { label: 'RISK', value: financialScore.riskLabel, sub: 'grade outcome risk', color: financialScore.riskLabel === 'LOW' ? '#22C55E' : financialScore.riskLabel === 'MEDIUM' ? '#F5B731' : '#EF4444' },
           ].map((k, i) => (
             <div key={i} style={{
-              padding: '16px 12px', borderRadius: 14, background: '#111113',
+              padding: '20px 16px', borderRadius: 14, background: '#111113',
               border: `1px solid ${i === 0 ? (quickProfit >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)') : 'rgba(255,255,255,0.07)'}`,
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 8 }}>{k.label}</div>
-              <div style={{ fontSize: 'clamp(18px, 5vw, 28px)', fontFamily: 'var(--font-mono)', color: k.color, fontWeight: 700, marginBottom: 4, lineHeight: 1 }}>{k.value}</div>
+              <div style={{ fontSize: 9, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 10 }}>{k.label}</div>
+              <div style={{ fontSize: 30, fontFamily: 'var(--font-mono)', color: k.color, fontWeight: 700, marginBottom: 6, lineHeight: 1 }}>{k.value}</div>
               <div style={{ fontSize: 10, color: '#444', fontFamily: 'var(--font-body)' }}>{k.sub}</div>
             </div>
           ))}
@@ -331,15 +334,6 @@ export default function ResultsPage() {
 
         {/* ═══ SECTIONS EN ACCORDÉON ═══ */}
 
-        <Section title="MARKET DATA" defaultOpen={true}>
-          <DataSources sources={[
-            { name: analysis.priceSource || 'TCGPlayer', type: analysis.realPriceFound ? 'live' : 'estimated', detail: 'Raw card prices' },
-            { name: 'PSA Pop Report', type: analysis.psaPopulation ? 'live' : 'estimated', detail: 'Grade probabilities' },
-            { name: 'Grading fees', type: 'live', detail: 'PSA/BGS/CGC official rates' },
-          ]} />
-          <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} setNumber={analysis.setNumber} version={analysis.version} />
-        </Section>
-
         <Section title="ROI CALCULATOR" defaultOpen={true}>
           {analysis.criteriaScores && (
             <ROICalculator
@@ -357,7 +351,15 @@ export default function ResultsPage() {
           )}
         </Section>
 
-
+        <Section title="SCENARIO SIMULATION">
+          <ScenarioSimulator
+            rawValue={effectiveRawValue}
+            gradedValues={analysis.estimatedGradedValue}
+            gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 20, psa7: 50 }}
+            totalCost={effectiveRawValue + (best?.cost || 50) + (best?.shippingTotal || 40)}
+            sellingFee={13.25}
+          />
+        </Section>
 
         <Section title="GRADING SERVICES">
           <div className="svc-grid">
@@ -394,9 +396,25 @@ export default function ResultsPage() {
           )}
         </Section>
 
+        {/* Overvalue Alert */}
+        {effectiveRawValue > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <OvervalueAlert
+              cardName={analysis.cardName}
+              game={analysis.game}
+              currentPrice={effectiveRawValue}
+            />
+          </div>
+        )}
 
-
-
+        <Section title="MARKET DATA" defaultOpen={true}>
+          <DataSources sources={[
+            { name: analysis.priceSource || 'TCGPlayer', type: analysis.realPriceFound ? 'live' : 'estimated', detail: 'Raw card prices' },
+            { name: 'PSA Pop Report', type: analysis.psaPopulation ? 'live' : 'estimated', detail: 'Grade probabilities' },
+            { name: 'Grading fees', type: 'live', detail: 'PSA/BGS/CGC official rates' },
+          ]} />
+            <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} setNumber={analysis.setNumber} version={analysis.version} />
+        </Section>
 
         {/* Footer */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 24 }}>
