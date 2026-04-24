@@ -277,20 +277,96 @@ export async function getLorcanaPrice(cardName: string): Promise<CardPrice> {
   }
 }
 
+export async function getTCGAPIPrice(cardName: string, gameSlug: string, setName?: string, setNumber?: string): Promise<CardPrice> {
+  const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+  try {
+    const apiKey = process.env.TCGAPI_KEY
+    if (!apiKey) return empty
+
+    const q = encodeURIComponent(cardName)
+    const res = await fetch(
+      `https://api.tcgapi.dev/v1/search?q=${q}&game_slug=${gameSlug}&limit=20`,
+      { headers: { 'x-api-key': apiKey } }
+    )
+    if (!res.ok) return empty
+    const data = await res.json()
+    const cards = data?.data || []
+    if (!cards.length) return empty
+
+    // Filtre par numéro de carte si dispo
+    let card = null
+    if (setNumber) {
+      const num = setNumber.includes('/') ? setNumber.split('/')[0].padStart(3, '0') : setNumber
+      card = cards.find((c: any) =>
+        c.number?.includes(num) || c.number === setNumber
+      )
+    }
+
+    // Filtre par set si dispo
+    if (!card && setName) {
+      const cleanSet = setName.replace(/\(french\)/gi, '').replace(/\(japanese\)/gi, '').trim().toLowerCase()
+      card = cards.find((c: any) =>
+        c.set_name?.toLowerCase().includes(cleanSet) ||
+        cleanSet.includes(c.set_name?.toLowerCase())
+      )
+    }
+
+    // Filtre par version (holo vs normal)
+    if (!card) {
+      card = cards.find((c: any) => c.market_price != null && c.total_listings > 5) || cards[0]
+    }
+
+    if (!card || !card.market_price) return empty
+
+    return {
+      name: card.name,
+      set: card.set_name || '',
+      image: card.image_url || null,
+      prices: {
+        low: card.low_price || null,
+        mid: card.median_price || card.market_price || null,
+        high: null,
+        market: card.market_price || null,
+      },
+      found: true
+    }
+  } catch {
+    return empty
+  }
+}
+
 export async function getCardPrice(cardName: string, game: string, setName?: string, setNumber?: string, version?: string): Promise<CardPrice> {
   const gameLower = game.toLowerCase()
-  if (gameLower.includes('pokemon') || gameLower.includes('pokémon')) {
-    return getPokemonPrice(cardName, setName, setNumber, version)
+
+  // TCG API — source universelle avec vrais prix TCGPlayer
+  const gameSlugMap: Record<string, string> = {
+    'pokemon': 'pokemon',
+    'pokémon': 'pokemon',
+    'magic': 'magic',
+    'magic: the gathering': 'magic',
+    'yu-gi-oh': 'yugioh',
+    'yugioh': 'yugioh',
+    'yu gi oh': 'yugioh',
+    'one piece': 'one-piece-card-game',
+    'one piece card game': 'one-piece-card-game',
+    'lorcana': 'lorcana-tcg',
+    'disney lorcana': 'lorcana-tcg',
   }
-  if (gameLower.includes('magic')) {
-    return getMagicPrice(cardName, setName)
+
+  const gameSlug = Object.entries(gameSlugMap).find(([key]) => gameLower.includes(key))?.[1]
+
+  if (gameSlug) {
+    const tcgResult = await getTCGAPIPrice(cardName, gameSlug, setName, setNumber)
+    if (tcgResult.found) return tcgResult
+
+    // Fallback APIs pour Pokemon et Magic
+    if (gameLower.includes('pokemon') || gameLower.includes('pokémon')) {
+      return getPokemonPrice(cardName, setName, setNumber, version)
+    }
+    if (gameLower.includes('magic')) {
+      return getMagicPrice(cardName, setName)
+    }
   }
-  if (gameLower.includes('yu-gi-oh') || gameLower.includes('yugioh') || gameLower.includes('yu gi oh')) {
-    return getYugiohPrice(cardName)
-  }
-  if (gameLower.includes('lorcana')) {
-    return getLorcanaPrice(cardName)
-  }
-  // One Piece — pas d'API publique avec prix
+
   return { name: cardName, set: setName || '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
 }
