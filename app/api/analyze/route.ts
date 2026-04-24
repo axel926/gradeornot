@@ -16,7 +16,7 @@ const GRADING_SERVICES = {
       { name: 'Express', turnaround: '10 days', cost: 150 },
       { name: 'Super Express', turnaround: '5 days', cost: 300 },
     ],
-    shipping: { toGrader: 20, fromGrader: 20, insurance: 0.015 },
+    shipping: { toGrader: 45, fromGrader: 35, insurance: 0.015 },
     url: 'https://www.psacard.com',
     logo: 'PSA'
   },
@@ -28,7 +28,7 @@ const GRADING_SERVICES = {
       { name: 'Express', turnaround: '10 days', cost: 100 },
       { name: 'Premium', turnaround: '3 days', cost: 250 },
     ],
-    shipping: { toGrader: 18, fromGrader: 18, insurance: 0.01 },
+    shipping: { toGrader: 45, fromGrader: 35, insurance: 0.01 },
     url: 'https://www.beckett.com/grading',
     logo: 'BGS'
   },
@@ -40,7 +40,7 @@ const GRADING_SERVICES = {
       { name: 'Express', turnaround: '10 days', cost: 50 },
       { name: 'Walkthrough', turnaround: '2 days', cost: 150 },
     ],
-    shipping: { toGrader: 15, fromGrader: 15, insurance: 0.01 },
+    shipping: { toGrader: 45, fromGrader: 35, insurance: 0.01 },
     url: 'https://www.cgccards.com',
     logo: 'CGC'
   }
