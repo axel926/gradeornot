@@ -44,7 +44,7 @@ export function runDecisionEngine(input: DecisionInput): DecisionResult {
     (gradedValues.PSA10 * gradeProbabilities.psa10 / 100) +
     (gradedValues.PSA9 * gradeProbabilities.psa9 / 100) +
     (gradedValues.PSA8 * gradeProbabilities.psa8 / 100) +
-    (rawValue * 0.85 * gradeProbabilities.psa7 / 100)
+    (rawValue * 0.80 * gradeProbabilities.psa7 / 100)
 
   const netExpected = expectedValue * (1 - sellingFee / 100)
   const netProfit = netExpected - totalCost
