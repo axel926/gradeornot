@@ -40,16 +40,49 @@ function extractPokemonPrice(card: any, version?: string): { low: number | null;
   }
 }
 
+// Mapping set name → set ID pour match précis
+const SET_NAME_TO_ID: Record<string, string> = {
+  'base set': 'base1', 'base': 'base1',
+  'jungle': 'base2',
+  'fossil': 'base3',
+  'base set 2': 'base4',
+  'team rocket': 'base5',
+  'gym heroes': 'gym1',
+  'gym challenge': 'gym2',
+  'neo genesis': 'neo1',
+  'neo discovery': 'neo2',
+  'neo revelation': 'neo3',
+  'neo destiny': 'neo4',
+  'expedition': 'ecard1', 'expedition base set': 'ecard1',
+  'aquapolis': 'ecard2',
+  'skyridge': 'ecard3',
+  'legendary collection': 'base6',
+  'southern islands': 'si1',
+}
+
+function cleanSetName(setName: string): string {
+  return setName
+    .replace(/\(french\)/gi, '').replace(/\(japanese\)/gi, '')
+    .replace(/\(german\)/gi, '').replace(/\(spanish\)/gi, '')
+    .replace(/\(italian\)/gi, '').replace(/\(portuguese\)/gi, '')
+    .trim()
+}
+
 export async function getPokemonPrice(cardName: string, setName?: string, setNumber?: string, version?: string): Promise<CardPrice> {
   const headers = { 'X-Api-Key': process.env.POKEMONTCG_API_KEY || '' }
   const empty: CardPrice = { name: cardName, set: '', image: null, prices: { low: null, mid: null, high: null, market: null }, found: false }
+
+  const cleanedSetName = setName ? cleanSetName(setName) : undefined
+  const setId = cleanedSetName ? SET_NAME_TO_ID[cleanedSetName.toLowerCase()] : undefined
 
   try {
     // Stratégie 1 — match par numéro de carte (le plus précis)
     if (setNumber) {
       const num = setNumber.includes('/') ? setNumber.split('/')[0] : setNumber
-      const query = setName
-        ? `number:${num} set.name:"${setName}"`
+      const query = setId
+        ? `number:${num} set.id:${setId}`
+        : cleanedSetName
+        ? `number:${num} set.name:"${cleanedSetName}"`
         : `name:"${cardName}" number:${num}`
       const res = await fetch(`${POKÉTCG_API}/cards?q=${encodeURIComponent(query)}&pageSize=5`, { headers })
       const data = await res.json()
@@ -66,8 +99,10 @@ export async function getPokemonPrice(cardName: string, setName?: string, setNum
     }
 
     // Stratégie 2 — match par nom + set
-    if (setName) {
-      const query = `name:"${cardName}" set.name:"${setName}"`
+    if (cleanedSetName) {
+      const query = setId
+        ? `name:"${cardName}" set.id:${setId}`
+        : `name:"${cardName}" set.name:"${cleanedSetName}"`
       const res = await fetch(`${POKÉTCG_API}/cards?q=${encodeURIComponent(query)}&pageSize=10`, { headers })
       const data = await res.json()
       if (data.data?.length > 0) {
