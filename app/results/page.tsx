@@ -174,8 +174,9 @@ export default function ResultsPage() {
   const bestService = Object.values(gradingAnalysis)[0]
   const best = bestService?.bestTier
   const quickROI = best ? best.roi : 0
+  const effectiveRawValue = (analysis.realPriceFound && analysis.realPriceData?.market) ? Math.round(analysis.realPriceData.market) : analysis.estimatedRawValue
   const financialScore = calculateFinancialScore({
-    rawValue: analysis.estimatedRawValue,
+    rawValue: effectiveRawValue,
     psa10Value: analysis.estimatedGradedValue.PSA10,
     roi: quickROI,
     volume7d: 0,
@@ -190,11 +191,11 @@ export default function ResultsPage() {
     trend30d: null,
     roi: quickROI,
     psaGrade: analysis.estimatedPSAGrade,
-    rawValue: analysis.estimatedRawValue,
+    rawValue: effectiveRawValue,
     volume7d: 0,
   })
   const quickProfit = best ? best.profit : 0
-  const breakEven = best ? Math.round((best.cost + best.shippingTotal + analysis.estimatedRawValue) / (1 - 0.1325)) : 0
+  const breakEven = best ? Math.round((best.cost + best.shippingTotal + effectiveRawValue) / (1 - 0.1325)) : 0
 
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0B' }}>
@@ -250,7 +251,7 @@ export default function ResultsPage() {
             roi={quickROI}
             netProfit={quickProfit}
             psaGrade={analysis.estimatedPSAGrade}
-            rawValue={analysis.estimatedRawValue}
+            rawValue={effectiveRawValue}
             gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 30, psa7: 40 }}
           />
         </div>
@@ -307,7 +308,7 @@ export default function ResultsPage() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 9, color: '#555', fontFamily: 'var(--font-mono)', letterSpacing: 1, marginBottom: 4 }}>RAW VALUE</div>
-                  <div style={{ fontSize: 22, fontFamily: 'var(--font-mono)', color: '#E8E8EC', fontWeight: 700 }}>${analysis.estimatedRawValue}</div>
+                  <div style={{ fontSize: 22, fontFamily: 'var(--font-mono)', color: '#E8E8EC', fontWeight: 700 }}>${effectiveRawValue}</div>
                 </div>
               </div>
               <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2 }}>
@@ -337,7 +338,7 @@ export default function ResultsPage() {
           {analysis.criteriaScores && (
             <ROICalculator
               cardName={analysis.cardName}
-              rawValue={analysis.estimatedRawValue}
+              rawValue={effectiveRawValue}
               gradedValues={analysis.estimatedGradedValue}
               psaGrade={analysis.estimatedPSAGrade}
               gradeProbabilities={analysis.gradeProbabilities || {
@@ -352,10 +353,10 @@ export default function ResultsPage() {
 
         <Section title="SCENARIO SIMULATION">
           <ScenarioSimulator
-            rawValue={analysis.estimatedRawValue}
+            rawValue={effectiveRawValue}
             gradedValues={analysis.estimatedGradedValue}
             gradeProbabilities={analysis.gradeProbabilities || { psa10: 5, psa9: 25, psa8: 20, psa7: 50 }}
-            totalCost={analysis.estimatedRawValue + (best?.cost || 50) + (best?.shippingTotal || 40)}
+            totalCost={effectiveRawValue + (best?.cost || 50) + (best?.shippingTotal || 40)}
             sellingFee={13.25}
           />
         </Section>
@@ -396,12 +397,12 @@ export default function ResultsPage() {
         </Section>
 
         {/* Overvalue Alert */}
-        {analysis.estimatedRawValue > 0 && (
+        {effectiveRawValue > 0 && (
           <div style={{ marginBottom: 16 }}>
             <OvervalueAlert
               cardName={analysis.cardName}
               game={analysis.game}
-              currentPrice={analysis.estimatedRawValue}
+              currentPrice={effectiveRawValue}
             />
           </div>
         )}
@@ -425,7 +426,7 @@ export default function ResultsPage() {
             roi={quickROI}
             netProfit={quickProfit}
             psaGrade={analysis.estimatedPSAGrade}
-            rawValue={analysis.estimatedRawValue}
+            rawValue={effectiveRawValue}
           />
           <button onClick={() => { sessionStorage.clear(); router.push('/') }} style={{
             padding: '11px 24px', borderRadius: 10, background: 'rgba(255,255,255,0.04)',
@@ -442,7 +443,7 @@ export default function ResultsPage() {
           cardName={analysis.cardName}
           game={analysis.game}
           psaGrade={analysis.estimatedPSAGrade}
-          rawValue={analysis.estimatedRawValue}
+          rawValue={effectiveRawValue}
           verdict={analysis.gradingRecommendation}
           roi={quickROI}
           netProfit={quickProfit}
