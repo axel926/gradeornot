@@ -6,6 +6,8 @@ interface MarketDataProps {
   cardName: string
   game: string
   setName?: string
+  setNumber?: string
+  version?: string
 }
 
 interface MarketInfo {
@@ -61,7 +63,7 @@ function TrendBadge({ value, label }: { value: number | null; label: string }) {
   )
 }
 
-export default function MarketDataComponent({ cardName, game, setName }: MarketDataProps) {
+export default function MarketDataComponent({ cardName, game, setName, setNumber, version }: MarketDataProps) {
   const [data, setData] = useState<MarketInfo | null>(null)
   const [cardmarket, setCardmarket] = useState<CardmarketInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -71,7 +73,7 @@ export default function MarketDataComponent({ cardName, game, setName }: MarketD
     fetch('/api/market', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cardName, game, setName })
+      body: JSON.stringify({ cardName, game, setName, setNumber, version })
     })
       .then(r => r.json())
       .then(d => {

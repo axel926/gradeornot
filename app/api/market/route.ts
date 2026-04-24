@@ -66,7 +66,7 @@ async function normalizeToEnglish(cardName: string, game: string): Promise<strin
 
 export async function POST(req: NextRequest) {
   try {
-    const { cardName, game, setName } = await req.json()
+    const { cardName, game, setName, setNumber, version } = await req.json()
     if (!cardName || !game) return NextResponse.json({ error: 'Missing card info' }, { status: 400 })
 
     const normalizedName = await normalizeToEnglish(cardName, game)
@@ -74,6 +74,32 @@ export async function POST(req: NextRequest) {
 
     // Pokemon TCG API — données réelles TCGPlayer + Cardmarket
     if (game.toLowerCase().includes('pokemon')) {
+      // Use prices.ts logic directly for precise matching
+      const { getPokemonPrice } = await import('../../lib/prices')
+      const priceResult = await getPokemonPrice(normalizedName, setName, setNumber, version)
+      if (priceResult.found && priceResult.prices.market) {
+        const rawMarket = priceResult.prices.market
+        const estimateGrades = (raw: number) => ({
+          psa7: Math.round(raw * 1.5 * 100) / 100,
+          psa8: Math.round(raw * 2.5 * 100) / 100,
+          psa9: Math.round(raw * 4 * 100) / 100,
+          psa10: Math.round(raw * 10 * 100) / 100,
+        })
+        return NextResponse.json({
+          data: {
+            raw: { avg: rawMarket, median: rawMarket, min: priceResult.prices.low, max: priceResult.prices.high, count: 1 },
+            grades: estimateGrades(rawMarket),
+            volume: { days7: 0, days30: 0 },
+            trends: { days7: null, days30: null },
+            source: `TCGPlayer · ${priceResult.set}`,
+            gradeSource: 'Estimated from raw price',
+            lastUpdated: new Date().toISOString(),
+          },
+          cardmarket: null
+        })
+      }
+    }
+    if (game.toLowerCase().includes('pokemon') && false) {
       try {
         const searchRes = await fetch(
           `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(normalizedName)}&pageSize=10`,

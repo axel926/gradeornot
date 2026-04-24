@@ -412,7 +412,7 @@ export default function ResultsPage() {
             { name: 'PSA Pop Report', type: analysis.psaPopulation ? 'live' : 'estimated', detail: 'Grade probabilities' },
             { name: 'Grading fees', type: 'live', detail: 'PSA/BGS/CGC official rates' },
           ]} />
-            <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} />
+            <MarketDataComponent cardName={analysis.cardName} game={analysis.game} setName={analysis.setName} setNumber={analysis.setNumber} version={analysis.version} />
         </Section>
 
         {/* Footer */}
